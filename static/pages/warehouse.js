@@ -23,8 +23,7 @@ const Warehouse = Vue.component('warehouse', {
               <th scope="col">SKU</th>
               <th scope="col">Inventory</th>
               <th scope="col">Weight/Volume</th>
-              <th scope="col">Name</th>
-              <th scope="col">Note</th>
+              <th scope="col">Info</th>
               <th scope="col">Customs Declaration</th>
               <th scope="col">Operation</th>
             </tr>
@@ -33,13 +32,24 @@ const Warehouse = Vue.component('warehouse', {
             <tr v-for="(product, ind) of products" :key="product.product_id">
               <th scope="row">{{ product.product_id }}</th>
               <td>N/A</td>
-              <td><input v-model="product.sku" /></td>
-              <td>{{ product.inventory }}</td>
+              <td><input-edit :value="product.sku" :disabled="product.busy" @change="productPut(ind, 'sku', $event)" /></td>
+              <td><input-edit :value="product.inventory" type="number" :disabled="product.busy" @change="productPut(ind, 'inventory', $event)" /></td>
               <td>{{ product.weight || 0 }}g<br />{{ product.width || 0 }} x {{ product.length || 0 }} x {{ product.height || 0 }} cm</td>
-              <td><input v-model="product.product_name" /></td>
-              <td><input v-model="product.note" /></td>
-              <td>Name (English)<br /><input v-model="product.declare_name" /><br />Name (Chinese)<br /><input v-model="product.declare_name_cn" /><br />Unit Value (USD)<br /><input v-model="product.declare_value" /></td>
-              <td><button type="button" class="btn btn-danger" @click="productDelete(ind)" :disabled="product.busy">Delete</button></td>
+              <td>
+                Name<br />
+                <input-edit :value="product.product_name" :disabled="product.busy" @change="productPut(ind, 'product_name', $event)" /><br />
+                Note<br />
+                <input-edit :value="product.note" :disabled="product.busy" @change="productPut(ind, 'note', $event)" />
+              </td>
+              <td>
+                Name (English)<br />
+                <input-edit :value="product.declare_name" :disabled="product.busy" @change="productPut(ind, 'declare_name', $event)" /><br />
+                Name (Chinese)<br />
+                <input-edit :value="product.declare_name_cn" :disabled="product.busy" @change="productPut(ind, 'declare_name_cn', $event)" /><br />
+                Unit Value (USD)<br />
+                <input-edit :value="product.declare_value" type="number" :disabled="product.busy" @change="productPut(ind, 'declare_value', $event)" />
+              </td>
+              <td><button v-if="product.inventory === 0" type="button" class="btn btn-danger" @click="productDelete(ind)" :disabled="product.busy">Delete</button></td>
             </tr>
           </tbody>
         </table>
@@ -75,6 +85,27 @@ const Warehouse = Vue.component('warehouse', {
       let result = await fetch(`/admin/abc/products/${this.products[ind].product_id}`, { method: 'DELETE' });
       if (result.status === 200) {
         Vue.delete(this.products, ind);
+      } else {
+        this.products[ind].busy = false;
+        Vue.set(this.products, ind, this.products[ind]);
+      }
+    },
+    async productPut(ind, key, value) {
+      this.products[ind].busy = true;
+      Vue.set(this.products, ind, this.products[ind]);
+      let result = await fetch(`/admin/abc/products/${this.products[ind].product_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          [ key ]: value
+        })
+      });
+      if (result.status === 200) {
+        let { product } = await result.json();
+        prepareProduct(product);
+        Vue.set(this.products, ind, product);
       } else {
         this.products[ind].busy = false;
         Vue.set(this.products, ind, this.products[ind]);

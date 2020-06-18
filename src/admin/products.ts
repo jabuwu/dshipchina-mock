@@ -24,6 +24,12 @@ router.post('/', (req, res) => {
   let product = dship.createProduct(db, req.body);
   res.json({ product });
 });
+router.put('/:id', (req, res) => {
+  let api: string = (<any>req).api;
+  let db = dship.db(api);
+  let product = dship.editProduct(db, Number(req.params.id), req.body);
+  res.json({ product });
+});
 router.delete('/:id', (req, res) => {
   let api: string = (<any>req).api;
   let db = dship.db(api);

@@ -55,6 +55,11 @@ export function createProduct(db: any, data: Partial<Exclude<Product, 'product_i
   return product;
 }
 
+export function editProduct(db: any, id: number, data: Partial<Exclude<Product, 'product_id'>>) {
+  db.get('products').find({ product_id: id }).assign(data).write();
+  return db.get('products').find({ product_id: id }).value();
+}
+
 export function productToJson(product: Product) {
   return {
     product_id: String(product.product_id),
