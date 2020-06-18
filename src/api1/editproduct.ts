@@ -18,12 +18,12 @@ export default function(req: express.Request, res: express.Response) {
     sku: query.sku,
     product_name: query.product_name,
     note: query.note,
-    declare_value: query.declare_value == null ? undefined : Number(query.declare_value),
-    declare_name: query.declare_name
+    declare_value: query.declared_value == null ? undefined : Number(query.declared_value),
+    declare_name: query.declared_name
   };
   let product = dship.editProduct(db, product_id, data);
   if (!product) {
     return dship.response(res, { status: 500 });
   }
-  dship.response(res, { status: '200', product: dship.productToJson(product) });
+  dship.response(res, { status: '200' });
 }
