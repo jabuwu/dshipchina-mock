@@ -18,7 +18,13 @@ router.get('/:id', (req, res, next) => {
     next();
   }
 });
-router.delete('/:id', (req, res, next) => {
+router.post('/', (req, res) => {
+  let api: string = (<any>req).api;
+  let db = dship.db(api);
+  let product = dship.createProduct(db, req.body);
+  res.json({ product });
+});
+router.delete('/:id', (req, res) => {
   let api: string = (<any>req).api;
   let db = dship.db(api);
   db.get('products').remove({ product_id: Number(req.params.id) }).value();

@@ -1,3 +1,10 @@
+function prepareProduct(product) {
+  product.declare_name = product.declare_name == null ? '0' : product.declare_name;
+  product.declare_name_cn = product.declare_name_cn == null ? '0' : product.declare_name_cn;
+  product.declare_value = product.declare_value.toFixed(2)
+  product.busy = false;
+}
+
 const Warehouse = Vue.component('warehouse', {
   template: `
     <div>
@@ -47,16 +54,20 @@ const Warehouse = Vue.component('warehouse', {
     let data = await fetch('/admin/abc/products');
     this.products = (await data.json()).products;
     for (let product of this.products) {
-      product.declare_name = product.declare_name == null ? '0' : product.declare_name;
-      product.declare_name_cn = product.declare_name_cn == null ? '0' : product.declare_name_cn;
-      product.declare_value = product.declare_value.toFixed(2)
-      product.busy = false;
+      prepareProduct(product);
     }
     this.products.reverse();
     this.loading = false;
   },
   methods: {
     async productCreate() {
+      let result = await fetch(`/admin/abc/products`, { method: 'POST' });
+      if (result.status === 200) {
+        let { product } = await result.json();
+        prepareProduct(product);
+        this.products.splice(0, 0, product);
+        Vue.set(this.products, 0, this.products[0]);
+      }
     },
     async productDelete(ind) {
       this.products[ind].busy = true;
