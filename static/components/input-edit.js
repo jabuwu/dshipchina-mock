@@ -40,9 +40,9 @@ Vue.component('input-edit', {
       }, 0);
     },
     commit() {
-      this.oldValue = this.newValue;
       this.editing = false;
       if (this.oldValue != this.newValue) {
+        this.oldValue = this.newValue;
         if (this.type === 'number') {
           this.$emit('change', Number(this.newValue));
         } else {
