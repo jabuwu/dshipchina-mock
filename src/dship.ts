@@ -32,10 +32,6 @@ export class Product {
   declare_value:   number        = 0;
   declare_name:    string | null = null;
   declare_name_cn: string | null = null;
-  description1:    string | null = null;
-  description2:    string | null = null;
-  sell:            number        = 1;
-  catalog_id:      number        = 0;
   weight:          number | null = null;
   length:          number | null = null;
   width:           number | null = null;
@@ -56,6 +52,10 @@ export function createProduct(db: any, data: Partial<Exclude<Product, 'product_i
 }
 
 export function editProduct(db: any, id: number, data: Partial<Exclude<Product, 'product_id'>>) {
+  if (!db.get('products').find({ product_id: id }).value()) {
+    return null;
+  }
+  data = _.pickBy(data, o => o !== undefined);
   db.get('products').find({ product_id: id }).assign(data).write();
   return db.get('products').find({ product_id: id }).value();
 }

@@ -8,7 +8,7 @@ Mocks the dshipchina API.
 
 - [ ] createorder
 - [x] createproduct
-- [ ] editproduct
+- [x] editproduct
 - [x] getallproducts
 - [ ] getanorder
 - [x] getaproduct
