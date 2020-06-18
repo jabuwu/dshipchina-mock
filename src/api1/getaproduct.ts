@@ -19,6 +19,6 @@ export default function(req: express.Request, res: express.Response) {
   }
   dship.response(res, {
     status: 200,
-    product
+    product: dship.productToJson(product)
   });
 }

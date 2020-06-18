@@ -46,6 +46,9 @@ export function createProduct(db: any, data: Partial<Exclude<Product, 'product_i
   let product = new Product();
   _.assign(product, _.pickBy(data, o => o !== undefined));
   product.product_id = db.get('next_product_id').value();
+  if (!product.sku) {
+    product.sku = String(product.product_id);
+  }
   db.get('products').push(product).write();
   db.set('next_product_id', product.product_id + 1).write();
   return product;
