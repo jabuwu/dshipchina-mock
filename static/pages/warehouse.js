@@ -36,17 +36,17 @@ const Warehouse = Vue.component('warehouse', {
               <td><input-edit :value="product.inventory" type="number" :disabled="product.busy" @change="productPut(ind, 'inventory', $event)" /></td>
               <td>{{ product.weight || 0 }}g<br />{{ product.width || 0 }} x {{ product.length || 0 }} x {{ product.height || 0 }} cm</td>
               <td>
-                Name<br />
+                <b>Name</b><br />
                 <input-edit :value="product.product_name" :disabled="product.busy" @change="productPut(ind, 'product_name', $event)" /><br />
-                Note<br />
+                <b>Note</b><br />
                 <input-edit :value="product.note" :disabled="product.busy" @change="productPut(ind, 'note', $event)" />
               </td>
               <td>
-                Name (English)<br />
+                <b>Name (English)</b><br />
                 <input-edit :value="product.declare_name" :disabled="product.busy" @change="productPut(ind, 'declare_name', $event)" /><br />
-                Name (Chinese)<br />
+                <b>Name (Chinese)</b><br />
                 <input-edit :value="product.declare_name_cn" :disabled="product.busy" @change="productPut(ind, 'declare_name_cn', $event)" /><br />
-                Unit Value (USD)<br />
+                <b>Unit Value (USD)</b><br />
                 <input-edit :value="product.declare_value" type="number" :disabled="product.busy" @change="productPut(ind, 'declare_value', $event)" />
               </td>
               <td><button v-if="product.inventory === 0" type="button" class="btn btn-danger" @click="productDelete(ind)" :disabled="product.busy">Delete</button></td>
