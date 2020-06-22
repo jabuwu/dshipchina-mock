@@ -70,7 +70,6 @@ api3.use((_req, res) => {
 app.use('/api3', api3);
 
 let api4 = express.Router();
-api4.get('/editabckurl.php', require('./api4/editabckurl').default);
 api4.get('/getbalance.php', require('./api4/getbalance').default);
 api4.get('/getbillrecord.php', require('./api4/getbillrecord').default);
 api4.get('/getship1.php', require('./api4/getship1').default);

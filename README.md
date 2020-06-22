@@ -42,9 +42,11 @@ Mocks the dshipchina API.
 
 ### api4
 
-- [ ] editabckurl
+- [x] ~~editabckurl~~*
 - [x] getbalance
 - [x] getbillrecord
 - [x] getship1
 - [x] getship2
 - [x] getshiprate
+
+&ast; seems to be removed from live api
