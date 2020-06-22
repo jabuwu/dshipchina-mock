@@ -21,31 +21,19 @@ describe('dship.ts', function() {
         waybill_id: '123'
       });
     });
-    it('should parse map values', async function() {
-      expect(parseQuery('?key=abc&product_id[0]=123&product_id[1]=321')).to.eql({
+    it('should parse map values when specified', async function() {
+      expect(parseQuery('?key=abc&product_id[0]=123&product_id[1]=321', { maps: [ 'product_id' ] })).to.eql({
         key: 'abc',
         product_id: { '0': '123', '1': '321' }
       });
-      expect(parseQuery('?key=abc&product_id=123&product_id[1]=321')).to.eql({
-        key: 'abc',
-        product_id: { '1': '321' }
-      });
-      expect(parseQuery('?key=abc&product_id[0]=123&product_id[1]=321')).to.eql({
+      expect(parseQuery('?key=abc&product_id[0]=123&product_id[1]=321', { maps: [ 'product_id' ] })).to.eql({
         key: 'abc',
         product_id: { '0': '123', '1': '321' }
       });
-      expect(parseQuery('?key=abc&product_id[abc]=123&product_id[cba]=321')).to.eql({
+      expect(parseQuery('?key=abc&product_id[abc]=123&product_id[cba]=321', { maps: [ 'product_id' ] })).to.eql({
         key: 'abc',
         product_id: { 'abc': '123', 'cba': '321' }
       });
-    });
-    it('should drop map values if overridden later in the chain', async function() {
-      expect(parseQuery('?key=abc&product_id[0]=123&product_id[1]=321&product_id=5')).to.eql({
-        key: 'abc',
-        product_id: '5'
-      });
-    });
-    it('should force map values when specified', async function() {
       expect(parseQuery('?key=abc&product_id=123', { maps: [ 'product_id' ] })).to.eql({
         key: 'abc',
         product_id: {}
@@ -57,6 +45,17 @@ describe('dship.ts', function() {
       expect(parseQuery('?key=abc&product_id=123&product_id[1]=321', { maps: [ 'product_id' ] })).to.eql({
         key: 'abc',
         product_id: { '1': '321' }
+      });
+    });
+    it('should drop map values if overridden later in the chain', async function() {
+      expect(parseQuery('?key=abc&product_id[0]=123&product_id[1]=321&product_id=5', { maps: [ 'product_id' ] })).to.eql({
+        key: 'abc',
+        product_id: {}
+      });
+    });
+    it('should ignore map values that are not specified', async function() {
+      expect(parseQuery('?key=abc&product_id[0]=123&product_id[1]=321')).to.eql({
+        key: 'abc'
       });
     });
   });

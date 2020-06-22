@@ -6,7 +6,7 @@ Mocks the dshipchina API.
 
 ### api1
 
-- [ ] createorder
+- [x] createorder
 - [x] createproduct
 - [x] editproduct
 - [x] getallproducts

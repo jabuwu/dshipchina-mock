@@ -20,7 +20,9 @@ export function db(api: string): any {
   db.defaults({
     balance: 100,
     next_product_id: 1,
-    products: []
+    next_waybill_id: 1,
+    products: [],
+    orders: []
   }).write();
   return db;
 }
@@ -80,6 +82,72 @@ export function productToJson(product: Product) {
   };
 }
 
+class Order {
+  waybill_id: number;
+  weight: number;
+  volume: number;
+  time2: number;
+  service_fee: number;
+  price: number;
+  ship_fee: number;
+  ship_id: number;
+  country_id: number;
+  city: string;
+  state: string;
+  street: string;
+  zipcode: string;
+  phone: string;
+  recipient: string;
+  company: string;
+  note: string;
+  waybill_type: number;
+  waybill_status: number;
+  track_number: string;
+  products: {
+    product_id: number,
+    qty: number
+  }[];
+}
+
+export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>) {
+  let order = new Order();
+  _.assign(order, _.pickBy(data, o => o !== undefined));
+  order.waybill_id = db.get('next_waybill_id').value();
+  order.service_fee = 0; // TODO: calculate
+  order.waybill_type = 1; // TODO: is this ever not 1?
+  order.waybill_status = 30; // TODO: what are the waybill statuses? is this always 30 to begin with?
+  db.get('orders').push(order).write();
+  db.set('next_waybill_id', order.waybill_id + 1).write();
+  // TOOD: decrement product inventories?
+  return order;
+}
+
+export function orderToJson(order: Order) {
+  return {
+    waybill_id: String(order.waybill_id),
+    weight: String(order.weight),
+    volume: String(order.volume),
+    time2: String(order.time2),
+    service_fee: String(order.service_fee),
+    ship_id: String(order.ship_id),
+    country_id: String(order.country_id),
+    city: order.city,
+    state: order.state,
+    street: order.street,
+    zipcode: order.zipcode,
+    phone: order.phone,
+    recipient: order.recipient,
+    company: order.company,
+    note: order.note,
+    waybill_type: String(order.waybill_type),
+    waybill_status: String(order.waybill_status),
+    products: _.map(order.products, product => ({
+      product_id: String(product.product_id),
+      qty: String(product.qty)
+    }))
+  };
+}
+
 export class ParseQueryOptions {
   // specifies queries that must be maps
   maps?: string[];
@@ -104,10 +172,12 @@ export function parseQuery(req: express.Request, options: ParseQueryOptions = ne
         key = key.substr(0, key.length - indMatch[0].length);
       }
       if (index !== null) {
-        if (typeof result[key] === 'string' || !result[key]) {
-          result[key] = {};
+        if (options.maps.indexOf(key) !== -1) {
+          if (typeof result[key] === 'string' || !result[key]) {
+            result[key] = {};
+          }
+          result[key][index] = value;
         }
-        result[key][index] = value;
       } else {
         result[key] = value;
       }
@@ -120,6 +190,69 @@ export function parseQuery(req: express.Request, options: ParseQueryOptions = ne
   }
   return result;
 }
+
+export function parseProductQuery(product_ids: { [ key: string ]: string }, qtys: { [ key: string ]: string }): { product_id: number, qty: number }[] {
+  let products: { product_id: number, qty: number }[] = [];
+  for (let key in product_ids) {
+    let product_id = Number(product_ids[key] || 0);
+    if (isNaN(product_id)) {
+      throw { status: 510 };
+    }
+    let qty = Number(qtys[key] || 0);
+    if (isNaN(qty) || qty < 0) {
+      throw { status: 520 };
+    }
+    if (qty !== 0) {
+      products.push({ product_id, qty });
+    }
+  }
+  return products;
+}
+
+export class ShippingOption {
+  ship_id: number;
+  ship_fee: number;
+}
+export function calculateShipping(weight: number, volume?: number | null) {
+  return [
+    {
+      ship_fee: 13.37,
+      ship_id: 1
+    },
+    {
+      ship_fee: weight + volume,
+      ship_id: 2
+    }
+  ];
+}
+export function calculateShippingProductQuery(db: any, product_ids: { [ key: string ]: string }, qtys: { [ key: string ]: string }) {
+  let weight = 0;
+  let volume = 0;
+  for (let key in product_ids) {
+    let product_id = Number(product_ids[key] || 0);
+    if (isNaN(product_id)) {
+      throw { status: 510 };
+    }
+    let qty = Number(qtys[key] || 0);
+    if (isNaN(qty) || qty < 0) {
+      throw { status: 520 };
+    }
+    let product = db.get('products').find({ product_id }).value();
+    if (!product) {
+      throw { status: 510 };
+    }
+    if (product.inventory < qty) {
+      throw { status: 520 };
+    }
+    if (product.weight) {
+      weight += product.weight * qty;
+    }
+    if (product.width && product.height && product.length) {
+      volume += product.width * product.height * product.length * qty;
+    }
+  }
+  return { weight, volume, shipping: calculateShipping(weight, volume) };
+};
 
 export function response(res: express.Response, json: any) {
   res.send(JSON.stringify(json).replace(/\//g, '\\/'));
