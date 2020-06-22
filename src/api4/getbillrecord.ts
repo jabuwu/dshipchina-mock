@@ -19,6 +19,9 @@ export default function(req: express.Request, res: express.Response) {
   }
   let db = dship.db(req.query.key as string);
   let bill_record = db.get('bill_record').filter(o => o.time >= time1 && o.time <= time2).value();
+  if (bill_record.length === 0) {
+    return dship.response(res, { status: 500 });
+  }
   bill_record = _.map(bill_record, bill => dship.billToJson(bill));
   dship.response(res, {
     status: 200,
