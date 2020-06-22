@@ -123,7 +123,7 @@ export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>
   order.waybill_id = db.get('next_waybill_id').value();
   order.service_fee = 0; // TODO: calculate
   if (options.subtractFromBalance) {
-    chargeBalance(db, 21, order.price + order.service_fee + order.ship_fee);
+    chargeBalance(db, 21, -(order.price + order.service_fee + order.ship_fee));
   }
   db.get('orders').push(order).write();
   db.set('next_waybill_id', order.waybill_id + 1).write();
@@ -370,16 +370,26 @@ export function createBill(db: any, data: Partial<Exclude<Bill, 'bill_id'>>) {
 }
 export function chargeBalance(db: any, bill_type: number, amount: number) {
   let balance = db.get('balance').value();
-  if (amount > balance) {
+  if (balance - amount < 0) {
     throw { status: 510 };
   }
-  balance = Math.floor((balance - amount) * 100) / 100;
+  balance = Math.floor((balance + amount) * 100) / 100;
   db.set('balance', balance).write();
   createBill(db, {
     bill_type,
     amount,
     balance
   });
+}
+export function billToJson(bill: Bill) {
+  return {
+    bill_id: String(bill.bill_id),
+    bill_type: String(bill.bill_type),
+    note: bill.note == null ? '0' : bill.note,
+    amount: String(bill.amount),
+    balance: String(bill.balance),
+    time: String(bill.time)
+  };
 }
 
 export class ResponseOptions {

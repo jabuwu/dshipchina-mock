@@ -44,7 +44,7 @@ Mocks the dshipchina API.
 
 - [ ] editabckurl
 - [x] getbalance
-- [ ] getbillrecord
+- [x] getbillrecord
 - [x] getship1
 - [x] getship2
 - [x] getshiprate
