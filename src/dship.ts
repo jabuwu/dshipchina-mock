@@ -23,8 +23,10 @@ export function db(api: string): any {
     balance: 100,
     next_product_id: 1,
     next_waybill_id: 1,
+    next_bill_id: 1,
     products: [],
-    orders: []
+    orders: [],
+    bill_record: []
   }).write();
   return db;
 }
@@ -121,12 +123,7 @@ export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>
   order.waybill_id = db.get('next_waybill_id').value();
   order.service_fee = 0; // TODO: calculate
   if (options.subtractFromBalance) {
-    let totalFees = order.price + order.service_fee + order.ship_fee;
-    let balance = db.get('balance').value();
-    if (totalFees > balance) {
-      throw { status: 510 };
-    }
-    db.set('balance', Math.floor((balance - totalFees) * 100) / 100).write();
+    chargeBalance(db, 21, order.price + order.service_fee + order.ship_fee);
   }
   db.get('orders').push(order).write();
   db.set('next_waybill_id', order.waybill_id + 1).write();
@@ -351,8 +348,39 @@ export function calculateShippingProductQuery(db: any, country_id: number, produ
       volume += product.width * product.height * product.length * qty;
     }
   }
-  return { weight, volume, shipping: calculateShipping(weight, volume) };
+  return { weight, volume, shipping: calculateShipping(country_id, weight, volume) };
 };
+
+export class Bill {
+  bill_id:   number;
+  bill_type: number;
+  note:      string | null = null;
+  amount:    number;
+  balance:   number;
+  time:      number;
+}
+export function createBill(db: any, data: Partial<Exclude<Bill, 'bill_id'>>) {
+  let bill = new Bill();
+  _.assign(bill, _.pickBy(data, o => o !== undefined));
+  bill.bill_id = db.get('next_bill_id').value();
+  bill.time = new Date().getTime();
+  db.get('bill_record').push(bill).write();
+  db.set('next_bill_id', bill.bill_id + 1).write();
+  return bill;
+}
+export function chargeBalance(db: any, bill_type: number, amount: number) {
+  let balance = db.get('balance').value();
+  if (amount > balance) {
+    throw { status: 510 };
+  }
+  balance = Math.floor((balance - amount) * 100) / 100;
+  db.set('balance', balance).write();
+  createBill(db, {
+    bill_type,
+    amount,
+    balance
+  });
+}
 
 export class ResponseOptions {
   json?: boolean;
