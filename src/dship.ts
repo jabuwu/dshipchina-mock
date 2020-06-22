@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as _ from 'lodash';
+import * as URL from 'url';
 
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
@@ -77,6 +78,47 @@ export function productToJson(product: Product) {
     height: product.height == null ? '0' : String(product.height),
     product_type: String(product.product_type)
   };
+}
+
+export class ParseQueryOptions {
+  // specifies queries that must be maps
+  maps?: string[];
+}
+export function parseQuery(req: express.Request, options: ParseQueryOptions = new ParseQueryOptions()): { [ key: string ]: string | { [ key: string ]: string } } {
+  options.maps = options.maps || [];
+  let rawQuery = URL.parse(req.url).query;
+  if (!rawQuery) {
+    return {};
+  }
+  let params = rawQuery.split('&');
+  let result: { [ key: string ]: string | { [ key: string ]: string } } = {};
+  for (let param of params) {
+    let split = param.split('=');
+    if (split.length == 2) {
+      let key = split[0];
+      let value = split[1];
+      let index: string | null = null;
+      let indMatch = key.match(/\[.*\]$/);
+      if (indMatch) {
+        index = indMatch[0].substr(1, indMatch[0].length - 2);
+        key = key.substr(0, key.length - indMatch[0].length);
+      }
+      if (index !== null) {
+        if (typeof result[key] === 'string' || !result[key]) {
+          result[key] = {};
+        }
+        result[key][index] = value;
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  for (let map of options.maps) {
+    if (_.isString(result[map])) {
+      result[map] = {};
+    }
+  }
+  return result;
 }
 
 export function response(res: express.Response, json: any) {
