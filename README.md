@@ -46,5 +46,5 @@ Mocks the dshipchina API.
 - [x] getbalance
 - [ ] getbillrecord
 - [x] getship1
-- [ ] getship2
+- [x] getship2
 - [ ] getshiprate
