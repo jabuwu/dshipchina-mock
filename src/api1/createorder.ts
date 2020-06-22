@@ -61,7 +61,7 @@ export default function(req: express.Request, res: express.Response) {
     if (!shippingMethod) {
       return dship.response(res, { status: 530 }); // TODO: check actual return code
     }
-    let time2 = new Date().getTime(); // TODO: not sure how this is calculated
+    let time2 = dship.unixTime(); // TODO: not sure how this is calculated
     let ship_fee = shippingMethod.ship_fee;
     let products = dship.parseProductQuery(product_ids, qtys); // TODO: error on no products?
     let order = dship.createOrder(db, {

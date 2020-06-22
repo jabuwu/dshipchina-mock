@@ -363,7 +363,7 @@ export function createBill(db: any, data: Partial<Exclude<Bill, 'bill_id'>>) {
   let bill = new Bill();
   _.assign(bill, _.pickBy(data, o => o !== undefined));
   bill.bill_id = db.get('next_bill_id').value();
-  bill.time = new Date().getTime();
+  bill.time = unixTime();
   db.get('bill_record').push(bill).write();
   db.set('next_bill_id', bill.bill_id + 1).write();
   return bill;
@@ -395,4 +395,8 @@ export function response(res: express.Response, json: any, options: ResponseOpti
 
 export function nyi(res: express.Response) {
   response(res, { status: 500, error: 'Not yet implemented' });
+}
+
+export function unixTime() {
+  return Math.floor(new Date().getTime() / 1000);
 }
