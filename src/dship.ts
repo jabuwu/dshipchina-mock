@@ -83,29 +83,29 @@ export function productToJson(product: Product) {
 }
 
 class Order {
-  waybill_id: number;
-  weight: number;
-  volume: number;
-  time2: number;
-  service_fee: number;
-  price: number;
-  ship_fee: number;
-  ship_id: number;
-  country_id: number;
-  city: string;
-  state: string;
-  street: string;
-  zipcode: string;
-  phone: string;
-  recipient: string;
-  company: string;
-  note: string;
-  waybill_type: number;
-  waybill_status: number;
-  track_number: string;
+  waybill_id:     number;
+  weight:         number;
+  volume:         number;
+  time2:          number;
+  service_fee:    number        = 0;
+  price:          number        = 0;
+  ship_fee:       number        = 0;
+  ship_id:        number;
+  country_id:     number;
+  city:           string        = '';
+  state:          string        = '';
+  street:         string        = '';
+  zipcode:        string        = '';
+  phone:          string        = '';
+  recipient:      string        = '';
+  company:        string        = '';
+  note:           string | null = null;
+  waybill_type:   number        = 1;
+  waybill_status: number        = 30;
+  track_number:   string        = '';
   products: {
-    product_id: number,
-    qty: number
+    product_id:   number,
+    qty:          number
   }[];
 }
 
@@ -114,21 +114,21 @@ export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>
   _.assign(order, _.pickBy(data, o => o !== undefined));
   order.waybill_id = db.get('next_waybill_id').value();
   order.service_fee = 0; // TODO: calculate
-  order.waybill_type = 1; // TODO: is this ever not 1?
-  order.waybill_status = 30; // TODO: what are the waybill statuses? is this always 30 to begin with?
   db.get('orders').push(order).write();
   db.set('next_waybill_id', order.waybill_id + 1).write();
   // TOOD: decrement product inventories?
   return order;
 }
 
-export function orderToJson(order: Order) {
-  return {
+export function orderToJson(order: Order, context: 'create' | 'get') {
+  return _.pickBy({
     waybill_id: String(order.waybill_id),
     weight: String(order.weight),
     volume: String(order.volume),
     time2: String(order.time2),
-    service_fee: String(order.service_fee),
+    service_fee: context === 'create' ? String(order.service_fee) : undefined,
+    price: context === 'get' ? String(order.price) : undefined,
+    ship_fee: context === 'get' ? String(order.ship_fee) : undefined,
     ship_id: String(order.ship_id),
     country_id: String(order.country_id),
     city: order.city,
@@ -138,14 +138,15 @@ export function orderToJson(order: Order) {
     phone: order.phone,
     recipient: order.recipient,
     company: order.company,
-    note: order.note,
+    note: order.note == null ? '0' : order.note, // TODO: can be null
     waybill_type: String(order.waybill_type),
     waybill_status: String(order.waybill_status),
+    track_number: context === 'get' ? order.track_number : undefined,
     products: _.map(order.products, product => ({
       product_id: String(product.product_id),
       qty: String(product.qty)
     }))
-  };
+  }, o => o !== undefined);
 }
 
 export class ParseQueryOptions {

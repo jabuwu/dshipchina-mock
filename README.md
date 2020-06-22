@@ -10,7 +10,7 @@ Mocks the dshipchina API.
 - [x] createproduct
 - [x] editproduct
 - [x] getallproducts
-- [ ] getanorder
+- [x] getanorder
 - [x] getaproduct
 - [ ] getorders
 - [ ] getproductflow

@@ -78,10 +78,10 @@ export default function(req: express.Request, res: express.Response) {
       phone: query['phone'] as string,
       recipient: query['recipient'] as string,
       company: (query['company'] as string) || '', // TODO: can this be null?
-      note: (query['note'] as string) || '', // TODO: can this be null?
+      note: (query['note'] as string) || null,
       products
     });
-    dship.response(res, { status: 200, order: dship.orderToJson(order) });
+    dship.response(res, { status: 200, order: dship.orderToJson(order, 'create') });
   } catch (err) {
     dship.response(res, err);
   }
