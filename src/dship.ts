@@ -1,6 +1,8 @@
 import * as express from 'express';
 import * as _ from 'lodash';
 import * as URL from 'url';
+import * as fs from 'fs';
+import { shippingMethods, countryCodes } from './constants';
 
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
@@ -222,23 +224,108 @@ export function parseProductQuery(product_ids: { [ key: string ]: string }, qtys
   return products;
 }
 
+const realShipRates = _.attempt(fs.readFileSync, './getshiprate.json');
+export function fakeShipRates() {
+  let results: any[] = [];
+  for (let i = 1; i < countryCodes.length; ++i) {
+    results.push({
+      coid: String(i),  //countryid
+      shid: '1',	//shipping method ID
+      fwei: '500',	// first weight define /g
+      awei: '500',  // added weight define/g
+      ffee: '115.76', // first weight cost / USD
+      afee: '41.63',  // added weight cost / USD
+      weibo: '21000', // weight bound for big weight price, If there a data here, mean when weight > this data, we should calculate the shipping cost base on bofwei,boawei,boffee,boafee
+      bofwei: '1000', //When weight >weight bound, first weight define /g
+      boawei: '1000', //When weight >weight bound, added weight define /g
+      boffee: '37.17',//When weight >weight bound, first weight cost/ USD
+      boafee: '37.17',//When weight >weight bound, added weight cost/ USD
+      fufee: '18.00', // Fuel surcharge
+      refee: '0.00', // register fee
+      sen2: '15.00', // % , copy brand extra fee, >1000 mean not accept copy brand for this rule
+      sen3: '25.00', // % , famous copy brand extra fee, >1000 mean not accept famous copy brand for this rule
+      sen4: '10.00', // % , with battery/magnetic extra fee, >1000 mean not accept battery/magnetic for this rule
+      sen5: '2000.00', // % , pure battery extra fee, >1000 mean not accept battery for this rule
+      sen6: '2000.00', // % , liquid or powder extra fee, >1000 mean not accept liquid or powder for this rule
+      minwei: '0',		// Minimum weight for the rule  /g
+      maxwei: '0',	// Maximum weight for the rule /g
+      typ: '1',     //the way how to calculate volume weight.
+      date1: '3',   //Minimum Shipping time /day   only for reference
+      date2: '7',   //Maximum Shipping time /day   only for reference
+      note: '0',	//special note for this rule
+      time: '1532070878'  //Lastest update time for this rule
+    });
+  }
+  return results;
+}
+let shipRatesCache = null;
+export function shipRates() {
+  if (shipRatesCache) {
+    return shipRatesCache;
+  }
+  if (realShipRates instanceof Error) {
+    shipRatesCache = fakeShipRates();
+  } else {
+    shipRatesCache = JSON.parse(realShipRates.toString());
+  }
+  return shipRatesCache;
+}
+
 export class ShippingOption {
   ship_id: number;
   ship_fee: number;
 }
-export function calculateShipping(weight: number, volume?: number | null) {
-  return [
-    {
-      ship_fee: 13.37,
-      ship_id: 1
-    },
-    {
-      ship_fee: weight + volume,
-      ship_id: 2
-    }
-  ];
+export function calculateShippingDship(country_id: number, ship_id: number, weight: number, volume?: number | null): number | null {
+  let fetch = shipRates();
+  let row = _.find(fetch, { coid: String(country_id), shid: String(ship_id) });
+  if (!row) {
+    return null;
+  }
+  row = _.mapValues(row, o => Number(o));
+  let wei: number;
+  volume = volume === null ? 0 : volume;
+  switch (row.typ) {
+  case 1:
+    wei = (weight > volume / 5) ? weight : volume / 5;
+    break;  
+  case 2:
+    wei = weight;
+    break;
+  case 3:
+    wei = (weight > volume / 2) ? weight : volume / 2;
+    break;
+  case 4:
+    wei = (weight > volume / 6) ? weight : volume / 6;
+    break;
+  default:
+    wei = (weight > volume / 5) ? weight : volume / 5;
+  }
+  let shippingcost: number;
+  if (wei <= row.weibo || row.weibo == 0) {
+    let addedcount = Math.ceil((wei - row.fwei) > 0 ? (wei - row.fwei) / row.awei : 0);
+    let sensp = 1; // TODO: calculate special shipping costs
+    shippingcost = (row.ffee + row.afee * addedcount + row.refee) * (row.fufee / 100 + 1) * sensp;
+  } else {
+    let addedcount = Math.ceil((wei - row.bofwei) > 0 ? (wei-row.bofwei) / row.boawei : 0);
+    let sensp = 1; // TODO: calculate special shipping costs
+    shippingcost = (row.boffee + row.boafee * addedcount + row.refee) * (row.fufee / 100 + 1) * sensp;
+  }
+  return Math.round(shippingcost * 100) / 100;
 }
-export function calculateShippingProductQuery(db: any, product_ids: { [ key: string ]: string }, qtys: { [ key: string ]: string }) {
+export function calculateShipping(country_id: number, weight: number, volume?: number | null): ShippingOption[] {
+  let results: ShippingOption[] = [];
+  for (let i = 1; i < shippingMethods.length; ++i) {
+    let fee = calculateShippingDship(country_id, i, weight, volume);
+    if (fee !== null) {
+      results.push({
+        ship_id: i,
+        ship_fee: fee
+      });
+    }
+  }
+  return results;
+}
+export function calculateShippingProductQuery(db: any, country_id: number, product_ids: { [ key: string ]: string }, qtys: { [ key: string ]: string }) {
   let weight = 0;
   let volume = 0;
   for (let key in product_ids) {
@@ -267,7 +354,14 @@ export function calculateShippingProductQuery(db: any, product_ids: { [ key: str
   return { weight, volume, shipping: calculateShipping(weight, volume) };
 };
 
-export function response(res: express.Response, json: any) {
+export class ResponseOptions {
+  json?: boolean;
+}
+export function response(res: express.Response, json: any, options: ResponseOptions = {}) {
+  options.json = options.json ?? false;
+  if (options.json) {
+    res.setHeader('Content-Type', 'application/json');
+  }
   res.send(JSON.stringify(json).replace(/\//g, '\\/'));
 }
 

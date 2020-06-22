@@ -17,15 +17,15 @@ export default function(req: express.Request, res: express.Response) {
   if (!req.query.country_code) {
     return dship.response(res, { status: 505 });
   }
-  let countryInd = countryCodes.indexOf(req.query.country_code as string);
-  if (countryInd === -1) {
+  let country_id = countryCodes.indexOf(req.query.country_code as string);
+  if (country_id === -1) {
     return dship.response(res, { status: 533 });
   }
   let db = dship.db(req.query.key as string);
   let product_ids: { [ key: string ]: string } = query['product_id'] as any;
   let qtys: { [ key: string ]: string } = query['qty'] as any;
   try {
-    let { weight, volume, shipping } = dship.calculateShippingProductQuery(db, product_ids, qtys);
+    let { weight, volume, shipping } = dship.calculateShippingProductQuery(db, country_id, product_ids, qtys);
     let ship = _.map(shipping, ship => ({
       ship_fee: ship.ship_fee,
       ship_id: String(ship.ship_id)

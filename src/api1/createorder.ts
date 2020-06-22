@@ -56,7 +56,7 @@ export default function(req: express.Request, res: express.Response) {
   let product_ids: { [ key: string ]: string } = query['product_id'] as any;
   let qtys: { [ key: string ]: string } = query['qty'] as any;
   try {
-    let { weight, volume, shipping } = dship.calculateShippingProductQuery(db, product_ids, qtys);
+    let { weight, volume, shipping } = dship.calculateShippingProductQuery(db, country_id, product_ids, qtys);
     let shippingMethod = _.find(shipping, { ship_id });
     if (!shippingMethod) {
       return dship.response(res, { status: 530 }); // TODO: check actual return code

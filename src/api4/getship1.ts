@@ -17,8 +17,8 @@ export default function(req: express.Request, res: express.Response) {
   if (!req.query.country_code) {
     return dship.response(res, { status: 505 });
   }
-  let countryInd = countryCodes.indexOf(req.query.country_code as string);
-  if (countryInd === -1) {
+  let country_id = countryCodes.indexOf(req.query.country_code as string);
+  if (country_id === -1) {
     return dship.response(res, { status: 533 });
   }
   let volume: number | null = null;
@@ -28,7 +28,7 @@ export default function(req: express.Request, res: express.Response) {
       volume = null;
     }
   }
-  let ship = _.map(dship.calculateShipping(weight, volume), ship => ({
+  let ship = _.map(dship.calculateShipping(country_id, weight, volume), ship => ({
     ship_fee: ship.ship_fee,
     ship_id: String(ship.ship_id)
   }));
