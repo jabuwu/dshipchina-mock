@@ -131,15 +131,15 @@ export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>
   return order;
 }
 
-export function orderToJson(order: Order, context: 'create' | 'get') {
+export function orderToJson(order: Order, context: 'create' | 'get' | 'getAll') {
   return _.pickBy({
     waybill_id: String(order.waybill_id),
     weight: String(order.weight),
     volume: String(order.volume),
     time2: String(order.time2),
-    service_fee: context === 'create' ? String(order.service_fee) : undefined,
+    service_fee: (context === 'create' || context === 'getAll') ? String(order.service_fee) : undefined,
     price: context === 'get' ? String(order.price) : undefined,
-    ship_fee: context === 'get' ? String(order.ship_fee) : undefined,
+    ship_fee: (context === 'get' || context === 'getAll') ? String(order.ship_fee) : undefined,
     ship_id: String(order.ship_id),
     country_id: String(order.country_id),
     city: order.city,
@@ -152,7 +152,7 @@ export function orderToJson(order: Order, context: 'create' | 'get') {
     note: order.note == null ? '0' : order.note, // TODO: can be null
     waybill_type: String(order.waybill_type),
     waybill_status: String(order.waybill_status),
-    track_number: context === 'get' ? order.track_number : undefined,
+    track_number: (context === 'get' || context === 'getAll') ? order.track_number : undefined,
     products: _.map(order.products, product => ({
       product_id: String(product.product_id),
       qty: String(product.qty)

@@ -12,7 +12,7 @@ Mocks the dshipchina API.
 - [x] getallproducts
 - [x] getanorder
 - [x] getaproduct
-- [ ] getorders
+- [x] getorders
 - [ ] getproductflow
 - [ ] getshiptrack
 - [ ] markreceived
