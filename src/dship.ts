@@ -21,6 +21,7 @@ export function db(api: string): any {
   }
   db.defaults({
     balance: 100,
+    tracking_hook: '',
     next_product_id: 1,
     next_waybill_id: 1,
     next_bill_id: 1,

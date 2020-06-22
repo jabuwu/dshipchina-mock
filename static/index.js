@@ -1,4 +1,5 @@
 const routes = [
+  { path: '/api', component: Api },
   { path: '/finance', component: Finance },
   { path: '/warehouse', component: Warehouse }
 ];

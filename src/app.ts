@@ -10,6 +10,7 @@ let admin = express.Router();
 admin.use(bodyParser.json());
 admin.use('/balance', require('./admin/balance').router);
 admin.use('/products', require('./admin/products').router);
+admin.use('/tracking-hook', require('./admin/tracking-hook').router);
 admin.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
