@@ -80,6 +80,8 @@ export default function(req: express.Request, res: express.Response) {
       company: (query['company'] as string) || '', // TODO: can this be null?
       note: (query['note'] as string) || null,
       products
+    }, {
+      subtractFromBalance: true
     });
     dship.response(res, { status: 200, order: dship.orderToJson(order, 'create') });
   } catch (err) {

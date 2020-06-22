@@ -109,11 +109,23 @@ class Order {
   }[];
 }
 
-export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>) {
+class CreateOrderOptions {
+  subtractFromBalance?: boolean;
+}
+export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>, options: CreateOrderOptions = {}) {
+  options.subtractFromBalance = options.subtractFromBalance ?? false;
   let order = new Order();
   _.assign(order, _.pickBy(data, o => o !== undefined));
   order.waybill_id = db.get('next_waybill_id').value();
   order.service_fee = 0; // TODO: calculate
+  if (options.subtractFromBalance) {
+    let totalFees = order.price + order.service_fee + order.ship_fee;
+    let balance = db.get('balance').value();
+    if (totalFees > balance) {
+      throw { status: 510 };
+    }
+    db.set('balance', Math.floor((balance - totalFees) * 100) / 100).write();
+  }
   db.get('orders').push(order).write();
   db.set('next_waybill_id', order.waybill_id + 1).write();
   // TOOD: decrement product inventories?
@@ -153,8 +165,8 @@ export class ParseQueryOptions {
   // specifies queries that must be maps
   maps?: string[];
 }
-export function parseQuery(req: express.Request, options: ParseQueryOptions = new ParseQueryOptions()): { [ key: string ]: string | { [ key: string ]: string } } {
-  options.maps = options.maps || [];
+export function parseQuery(req: express.Request, options: ParseQueryOptions = {}): { [ key: string ]: string | { [ key: string ]: string } } {
+  options.maps = options.maps ?? [];
   let rawQuery = URL.parse(req.url).query;
   if (!rawQuery) {
     return {};
