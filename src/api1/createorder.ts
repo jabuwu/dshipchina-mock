@@ -4,6 +4,9 @@ import * as dship from '../dship';
 import { countryCodes, shippingMethods } from '../constants';
 
 export default function(req: express.Request, res: express.Response) {
+  if (!dship.validApi(req.query.key as string)) {
+    return dship.response(res, { status: 501 });
+  }
   let query = dship.parseQuery(req, { maps: [ 'product_id', 'qty' ] });
   if (!query['recipient']) {
     return dship.response(res, { status: 505 });
