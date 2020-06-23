@@ -1,6 +1,6 @@
 # dshipchina-mock
 
-Mocks the dshipchina API.
+Mocks the [DShipChina Fulfillment API](https://www.dshipchina.com/api.html). Only routes on the `api1` and `api4` endpoints are supported, there's no plans at this time to support the [Seller and Buyer API](https://www.dshipchina.com/api3.html).
 
 ## Checklist
 
@@ -14,31 +14,8 @@ Mocks the dshipchina API.
 - [x] getaproduct
 - [x] getorders
 - [ ] getproductflow
-- [ ] getshiptrack
-- [ ] markreceived
-
-### api2
-
-- [ ] addimage
-- [ ] addproductoption
-- [ ] createaproduct
-- [ ] deleteaproductoption
-- [ ] deleteimage
-- [ ] editaproductoption
-- [ ] editimagesort
-- [ ] editproduct
-- [ ] getallproducts
-- [ ] getaproduct
-- [ ] getproductflow
-
-### api3
-
-- [ ] createorder
-- [ ] getanorder
-- [ ] getaproduct
-- [ ] getorders
-- [ ] getsellerproducts
-- [ ] markreceived
+- [x] getshiptrack
+- [x] markreceived
 
 ### api4
 
@@ -50,3 +27,9 @@ Mocks the dshipchina API.
 - [x] getshiprate
 
 &ast; seems to be removed from live api
+
+## Todo
+
+- Adjust product inventories when orders ship/cancel/return.
+- Track product flow.
+- Add bill records for "recharging" balance.

@@ -40,37 +40,6 @@ api1.use((_req, res) => {
 });
 app.use('/api1', api1);
 
-let api2 = express.Router();
-api2.get('/addimage.php', require('./api2/addimage').default);
-api2.get('/addproductoption.php', require('./api2/addproductoption').default);
-api2.get('/createaproduct.php', require('./api2/createaproduct').default);
-api2.get('/deleteaproductoption.php', require('./api2/deleteaproductoption').default);
-api2.get('/deleteimage.php', require('./api2/deleteimage').default);
-api2.get('/editaproductoption.php', require('./api2/editaproductoption').default);
-api2.get('/editimagesort.php', require('./api2/editimagesort').default);
-api2.get('/editproduct.php', require('./api2/editproduct').default);
-api2.get('/getallproducts.php', require('./api2/getallproducts').default);
-api2.get('/getaproduct.php', require('./api2/getaproduct').default);
-api2.get('/getproductflow.php', require('./api2/getproductflow').default);
-api2.use((_req, res) => {
-  res.status(404);
-  res.send('File not found.');
-});
-app.use('/api2', api2);
-
-let api3 = express.Router();
-api3.get('/createorder.php', require('./api3/createorder').default);
-api3.get('/getanorder.php', require('./api3/getanorder').default);
-api3.get('/getaproduct.php', require('./api3/getaproduct').default);
-api3.get('/getorders.php', require('./api3/getorders').default);
-api3.get('/getsellerproducts.php', require('./api3/getsellerproducts').default);
-api3.get('/markreceived.php', require('./api3/markreceived').default);
-api3.use((_req, res) => {
-  res.status(404);
-  res.send('File not found.');
-});
-app.use('/api3', api3);
-
 let api4 = express.Router();
 api4.get('/getbalance.php', require('./api4/getbalance').default);
 api4.get('/getbillrecord.php', require('./api4/getbillrecord').default);
