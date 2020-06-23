@@ -21,12 +21,14 @@ export function db(api: string): any {
     dbs[api] = db;
   }
   db.defaults({
-    balance: 100,
+    balance: 9999999,
     tracking_hook: '',
     next_product_id: 1,
+    next_product_flow_id: 1,
     next_waybill_id: 1,
     next_bill_id: 1,
     products: [],
+    product_flow: [],
     orders: [],
     bill_record: []
   }).write();
@@ -62,16 +64,18 @@ export function createProduct(db: any, data: Partial<Exclude<Product, 'product_i
   db.set('next_product_id', product.product_id + 1).write();
   return product;
 }
-
 export function editProduct(db: any, id: number, data: Partial<Exclude<Product, 'product_id'>>) {
-  if (!db.get('products').find({ product_id: id }).value()) {
+  let product = db.get('products').find({ product_id: id }).value();
+  if (!product) {
     return null;
+  }
+  if (data.inventory != null && product.inventory != data.inventory) {
+    createProductFlow(db, product.product_id, 4, data.inventory - product.inventory);
   }
   data = _.pickBy(data, o => o !== undefined);
   db.get('products').find({ product_id: id }).assign(data).write();
   return db.get('products').find({ product_id: id }).value();
 }
-
 export function productToJson(product: Product) {
   return {
     product_id: String(product.product_id),
@@ -85,6 +89,57 @@ export function productToJson(product: Product) {
     width: product.width == null ? '0' : String(product.width),
     height: product.height == null ? '0' : String(product.height),
     product_type: String(product.product_type)
+  };
+}
+
+export class ProductFlow {
+  flow_id:     number;
+  worker_id:   number;
+  customer_id: number;
+  time:        number;
+  product_id:  number;
+  qty:         number;
+  qty_balance: number;
+  flow_type:   number;
+  note:        string | null;
+}
+export function createProductFlow(db: any, product_id: number, flow_type: number, adjust: number) {
+  let product = db.get('products').find({ product_id }).value() as Product;
+  if (!product) {
+    throw { status: 500 };
+  }
+  if (product.inventory + adjust < 0) {
+    throw { status: 520 };
+  }
+  product.inventory += adjust;
+  db.get('products').find({ product_id }).assign({ inventory: product.inventory }).write();
+  let flow = new ProductFlow();
+  _.assign(flow, {
+    worker_id: 0,
+    customer_id: 0,
+    time: unixTime(),
+    product_id,
+    qty: adjust,
+    qty_balance: product.inventory,
+    flow_type,
+    note: null // TODO: note is set to batch id(?) in some cases
+  });
+  flow.flow_id = db.get('next_product_flow_id').value();
+  db.get('product_flow').push(flow).write();
+  db.set('next_product_flow_id', flow.flow_id + 1).write();
+  return flow;
+}
+export function productFlowToJson(flow: ProductFlow) {
+  return {
+    flow_id: String(flow.flow_id),
+    worker_id: String(flow.worker_id),
+    customer_id: String(flow.customer_id),
+    time: String(flow.time),
+    product_id: String(flow.product_id),
+    qty: String(flow.qty),
+    qty_balance: String(flow.qty_balance),
+    flow_type: String(flow.flow_type),
+    note: flow.note == null ? '0' : flow.note
   };
 }
 
@@ -130,6 +185,9 @@ export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>
   db.get('orders').push(order).write();
   db.set('next_waybill_id', order.waybill_id + 1).write();
   // TOOD: decrement product inventories?
+  for (let product of order.products) {
+    createProductFlow(db, product.product_id, 2, -product.qty);
+  }
   return order;
 }
 export function shipOrder(db: any, id: number, track_number: string) {
@@ -157,18 +215,38 @@ export function receiveOrder(db: any, id: number) {
   return db.get('orders').find({ waybill_id: id }).value();
 }
 export function returnOrder(db: any, id: number) {
-  if (!db.get('orders').find({ waybill_id: id }).value()) {
+  let order = db.get('orders').find({ waybill_id: id }).value() as Order;
+  if (!order) {
     return null;
+  }
+  for (let product of order.products) {
+    createProductFlow(db, product.product_id, 3, product.qty);
   }
   db.get('orders').find({ waybill_id: id }).assign({ waybill_status: 60 }).write();
   return db.get('orders').find({ waybill_id: id }).value();
 }
 export function resetOrder(db: any, id: number) {
-  if (!db.get('orders').find({ waybill_id: id }).value()) {
+  let order = db.get('orders').find({ waybill_id: id }).value() as Order;
+  if (!order) {
     return null;
   }
-  db.get('orders').find({ waybill_id: id }).assign({ track_number: '', waybill_status: 30 }).write();
+  if (order.waybill_status === 60) {
+    for (let product of order.products) {
+      createProductFlow(db, product.product_id, 2, -product.qty);
+    }
+  }
+  db.get('orders').find({ waybill_id: id }).assign({ waybill_status: 30 }).write();
   return db.get('orders').find({ waybill_id: id }).value();
+}
+export function cancelOrder(db: any, id: number) {
+  let order = db.get('orders').find({ waybill_id: id }).value() as Order;
+  if (!order) {
+    return null;
+  }
+  for (let product of order.products) {
+    createProductFlow(db, product.product_id, 5, product.qty);
+  }
+  db.get('orders').remove({ waybill_id: Number(id) }).write();
 }
 
 export function orderToJson(order: Order, context: 'create' | 'get' | 'getAll') {

@@ -35,7 +35,6 @@ router.put('/:id/reset', (req, res) => {
 router.delete('/:id', (req, res) => {
   let api: string = (<any>req).api;
   let db = dship.db(api);
-  console.log('we did it');
-  db.get('orders').remove({ waybill_id: Number(req.params.id) }).write();
+  dship.cancelOrder(db, Number(req.params.id));
   res.json({});
 });

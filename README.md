@@ -30,7 +30,7 @@ Open browser to `http://localhost:3333` for further instructions.
 - [x] getanorder
 - [x] getaproduct
 - [x] getorders
-- [ ] getproductflow
+- [x] getproductflow
 - [x] getshiptrack
 - [x] markreceived
 
@@ -47,8 +47,7 @@ Open browser to `http://localhost:3333` for further instructions.
 
 ## Todo
 
-- Adjust product inventories when orders ship/cancel/return.
-- Track product flow.
+- Ensure product flow matches that of dshipchina's live api.
 - Add bill records for "recharging" balance.
 - Match dshipchina response headers.
 - Check proper status code for a few error responses (search for TODO in code).
