@@ -131,6 +131,34 @@ export function createOrder(db: any, data: Partial<Exclude<Order, 'waybill_id'>>
   // TOOD: decrement product inventories?
   return order;
 }
+export function shipOrder(db: any, id: number, track_number: string) {
+  if (!db.get('orders').find({ waybill_id: id }).value()) {
+    return null;
+  }
+  db.get('orders').find({ waybill_id: id }).assign({ track_number, waybill_status: 41 }).write();
+  return db.get('orders').find({ waybill_id: id }).value();
+}
+export function receiveOrder(db: any, id: number) {
+  if (!db.get('orders').find({ waybill_id: id }).value()) {
+    return null;
+  }
+  db.get('orders').find({ waybill_id: id }).assign({ waybill_status: 5 }).write();
+  return db.get('orders').find({ waybill_id: id }).value();
+}
+export function returnOrder(db: any, id: number) {
+  if (!db.get('orders').find({ waybill_id: id }).value()) {
+    return null;
+  }
+  db.get('orders').find({ waybill_id: id }).assign({ waybill_status: 60 }).write();
+  return db.get('orders').find({ waybill_id: id }).value();
+}
+export function resetOrder(db: any, id: number) {
+  if (!db.get('orders').find({ waybill_id: id }).value()) {
+    return null;
+  }
+  db.get('orders').find({ waybill_id: id }).assign({ track_number: '', waybill_status: 30 }).write();
+  return db.get('orders').find({ waybill_id: id }).value();
+}
 
 export function orderToJson(order: Order, context: 'create' | 'get' | 'getAll') {
   return _.pickBy({

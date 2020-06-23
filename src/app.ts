@@ -9,6 +9,7 @@ app.set('json spaces', 2);
 let admin = express.Router();
 admin.use(bodyParser.json());
 admin.use('/balance', require('./admin/balance').router);
+admin.use('/orders', require('./admin/orders').router);
 admin.use('/products', require('./admin/products').router);
 admin.use('/tracking-hook', require('./admin/tracking-hook').router);
 admin.use((_req, res) => {
