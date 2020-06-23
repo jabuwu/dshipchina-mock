@@ -2,6 +2,10 @@
 
 Mocks the [DShipChina Fulfillment API](https://www.dshipchina.com/api.html). Only routes on the `api1` and `api4` endpoints are supported, there's no plans at this time to support the [Seller and Buyer API](https://www.dshipchina.com/api3.html).
 
+This project is far more than just a basic mock that returns stubs. Endpoints hope to reimplement the API as closely as possible in a way that aids in testing integration with the DShipChina API, including all its quirks and bugs.&ast;
+
+*&ast; And oh boy are there bugs.*
+
 ## Running
 
 Requires node/npm.
