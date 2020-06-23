@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import * as URL from 'url';
 import * as fs from 'fs';
 import { shippingMethods, countryCodes } from './constants';
+const axios = require('axios');
 
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
@@ -136,6 +137,16 @@ export function shipOrder(db: any, id: number, track_number: string) {
     return null;
   }
   db.get('orders').find({ waybill_id: id }).assign({ track_number, waybill_status: 41 }).write();
+  let url = db.get('tracking_hook').value();
+  if (url && track_number) {
+    (async() => {
+      try {
+        await axios.get(`${url}?waybillid=${id}&tracknumber=${track_number}`);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }
   return db.get('orders').find({ waybill_id: id }).value();
 }
 export function receiveOrder(db: any, id: number) {
