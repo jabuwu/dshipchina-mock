@@ -33,3 +33,5 @@ Mocks the [DShipChina Fulfillment API](https://www.dshipchina.com/api.html). Onl
 - Adjust product inventories when orders ship/cancel/return.
 - Track product flow.
 - Add bill records for "recharging" balance.
+- Match dshipchina response headers.
+- Check proper status code for a few error responses (search for TODO in code).
