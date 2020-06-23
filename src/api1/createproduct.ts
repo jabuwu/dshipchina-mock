@@ -14,7 +14,6 @@ export default function(req: express.Request, res: express.Response) {
     note: query.note,
     declare_name: query.declared_value ? Number(query.declared_value).toFixed(2) : undefined // this mimicks a bug in the real dshipchina api
   };
-  // TODO: download_url, sort
   let product = dship.createProduct(db, data);
   dship.response(res, { status: '200', product_id: String(product.product_id) });
 }
