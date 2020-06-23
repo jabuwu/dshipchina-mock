@@ -2,6 +2,19 @@
 
 Mocks the [DShipChina Fulfillment API](https://www.dshipchina.com/api.html). Only routes on the `api1` and `api4` endpoints are supported, there's no plans at this time to support the [Seller and Buyer API](https://www.dshipchina.com/api3.html).
 
+## Running
+
+Requires node/npm.
+
+```
+git clone git@github.com:jabuwu/dshipchina-mock.git
+cd dshipchina-mock
+npm install
+npm start
+```
+
+Open browser to `http://localhost:3333` for further instructions.
+
 ## Checklist
 
 ### api1
