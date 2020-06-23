@@ -48,3 +48,4 @@ Open browser to `http://localhost:3333` for further instructions.
 - Add bill records for "recharging" balance.
 - Match dshipchina response headers.
 - Check proper status code for a few error responses (search for TODO in code).
+- Allow creating an order in the admin panel.
