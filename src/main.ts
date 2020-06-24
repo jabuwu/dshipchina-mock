@@ -1,2 +1,3 @@
 import { app } from './app';
-app.listen(3333);
+import * as env from './env';
+app.listen(env.PORT);
