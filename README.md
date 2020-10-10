@@ -52,4 +52,3 @@ Open browser to `http://localhost:3333` for further instructions.
 - Match dshipchina response headers.
 - Check proper status code for a few error responses (search for TODO in code).
 - Refund if waybill was cancelled?
-- Add ability to edit weight and volume in admin panel.

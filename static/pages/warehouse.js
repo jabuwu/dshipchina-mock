@@ -35,7 +35,12 @@ const Warehouse = Vue.component('warehouse', {
               <td>N/A</td>
               <td><input-edit :value="product.sku" :disabled="product.busy" @change="productPut(ind, 'sku', $event)" /></td>
               <td><input-edit :value="product.inventory" type="number" :disabled="product.busy" @change="productPut(ind, 'inventory', $event)" /></td>
-              <td>{{ product.weight || 0 }}g<br />{{ product.width || 0 }} x {{ product.length || 0 }} x {{ product.height || 0 }} cm</td>
+              <td>
+                <b>Weight (g):</b><br /><input-edit :value="product.weight || 0" type="number" :disabled="product.busy"  @change="productPut(ind, 'weight', $event)" />
+                <b>Width (cm):</b><br /><input-edit :value="product.width || 0" type="number" :disabled="product.busy"  @change="productPut(ind, 'width', $event)" />
+                <b>Length (cm):</b><br /><input-edit :value="product.length || 0" type="number" :disabled="product.busy"  @change="productPut(ind, 'length', $event)" />
+                <b>Height (cm):</b><br /><input-edit :value="product.height || 0" type="number" :disabled="product.busy"  @change="productPut(ind, 'height', $event)" />
+              </td>
               <td>
                 <b>Name</b><br />
                 <input-edit :value="product.product_name" :disabled="product.busy" @change="productPut(ind, 'product_name', $event)" /><br />
