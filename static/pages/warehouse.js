@@ -2,7 +2,8 @@ function prepareProduct(product) {
   product.declare_name = product.declare_name == null ? '0' : product.declare_name;
   product.declare_name_cn = product.declare_name_cn == null ? '0' : product.declare_name_cn;
   product.declare_value = product.declare_value.toFixed(2)
-  product.busy = false;
+  Vue.set(product, 'busy', false);
+  Vue.set(product, 'ship_count', '0');
 }
 
 const Warehouse = Vue.component('warehouse', {
@@ -49,7 +50,57 @@ const Warehouse = Vue.component('warehouse', {
                 <b>Unit Value (USD)</b><br />
                 <input-edit :value="product.declare_value" type="number" :disabled="product.busy" @change="productPut(ind, 'declare_value', $event)" />
               </td>
-              <td><button v-if="product.inventory === 0" type="button" class="btn btn-danger" @click="productDelete(ind)" :disabled="product.busy">Delete</button></td>
+              <td>
+                <div v-if="product.inventory > 0">
+                  Ship quantity:<br />
+                  <input v-model.number="product.ship_count" type="number" min="0" :max="product.inventory" @input="updateShipping()" @change="updateShipping()" :style="product.ship_count > product.inventory ? { color: 'red', border: '2px solid red', 'background-color': '#fee' } : (product.ship_count > 0 ? { color: 'green', border: '2px solid green', 'background-color': '#efe' } : {})" />
+                </div>
+                <button v-if="product.inventory === 0" type="button" class="btn btn-danger" @click="productDelete(ind)" :disabled="product.busy">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <hr />
+      <div style="padding-bottom: 40px">
+        <h2>
+          Shipping
+        </h2>
+        <table style="width: 100%">
+          <tbody>
+            <tr>
+              <td style="width: 25%; vertical-align: top">
+                <div v-if="shipping.products.count == 0">Select items above</div>
+                <div style="color: green" v-else>Count: {{ shipping.products.count }}</div>
+              </td>
+              <td style="width: 25%; vertical-align: top">
+                <div v-if="shipping.products.count > 0">
+                  Address<br />
+                  <input placeholder="Recipient" v-model="shipping.address.recipient" @input="updateShipping()" /><br />
+                  <input placeholder="Company (optional)" v-model="shipping.address.company" @input="updateShipping()" /><br />
+                  <input placeholder="Street Address" v-model="shipping.address.street" @input="updateShipping()" /><br />
+                  <input placeholder="City" v-model="shipping.address.city" @input="updateShipping()" /><br />
+                  <input placeholder="State / Region" v-model="shipping.address.state" @input="updateShipping()" /><br />
+                  <select v-model="shipping.address.country" @input="changeCountry()">
+                    <option v-for="(country, i) of countryList" v-if="i != 0" :value="i">{{ country }}</option>
+                  </select><br />
+                  <input placeholder="Postal Code" v-model="shipping.address.zipcode" @input="updateShipping()" /><br />
+                  <input placeholder="Phone Number" v-model="shipping.address.phone" @input="updateShipping()" /><br />
+                </div>
+              </td>
+              <td style="width: 25%; vertical-align: top">
+                <div v-if="shipping.address.ready && countryShipping">
+                  Ship Method<br />
+                  <select v-model="shipping.ship_id">
+                    <option v-for="(method, i) of shippingMethods" v-if="i != 0 && countryShipping[shipping.address.country].indexOf(String(i)) != -1" :value="i">{{ method }}</option>
+                  </select><br />
+                </div>
+              </td>
+              <td style="width: 25%; vertical-align: top">
+                <div v-if="shipping.ship_id > 0">
+                  <button @click="checkout()">Ship</button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -58,9 +109,31 @@ const Warehouse = Vue.component('warehouse', {
   `,
   data: () => ({
     loading: true,
-    products: []
+    products: [],
+    shipping: {
+      products: {
+        count: 0,
+        items: []
+      },
+      address: {
+        ready: false,
+        recipient: '',
+        company: '',
+        street: '',
+        city: '',
+        state: '',
+        country: 1,
+        zipcode: '',
+        phone: ''
+      },
+      ship_id: 0
+    },
+    countryList,
+    shippingMethods,
+    countryShipping: null
   }),
   async mounted() {
+    this.getCountryShipping();
     let data = await fetch('/admin/abc/products');
     this.products = (await data.json()).products;
     for (let product of this.products) {
@@ -70,6 +143,10 @@ const Warehouse = Vue.component('warehouse', {
     this.loading = false;
   },
   methods: {
+    async getCountryShipping() {
+      let data = await fetch('/admin/abc/country-shipping');
+      this.countryShipping = await data.json();
+    },
     async productCreate() {
       let result = await fetch(`/admin/abc/products`, { method: 'POST' });
       if (result.status === 200) {
@@ -109,6 +186,42 @@ const Warehouse = Vue.component('warehouse', {
       } else {
         this.products[ind].busy = false;
         Vue.set(this.products, ind, this.products[ind]);
+      }
+    },
+    updateShipping() {
+      this.shipping.products.count = 0;
+      this.shipping.products.items = [];
+      for (let product of this.products) {
+        if (product.ship_count > 0 && product.ship_count <= product.inventory) {
+          this.shipping.products.count += product.ship_count;
+          this.shipping.products.items.push({
+            product_id: product.product_id,
+            qty: Number(product.ship_count)
+          });
+        }
+      }
+      this.shipping.address.ready = !!(this.shipping.address.recipient && this.shipping.address.street && this.shipping.address.city && this.shipping.address.state && this.shipping.address.country && this.shipping.address.zipcode && this.shipping.address.phone);
+      console.log(this.shipping);
+    },
+    changeCountry() {
+      this.shipping.ship_id = 0;
+      this.updateShipping();
+    },
+    async checkout() {
+      let data = await fetch('/admin/abc/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          address: this.shipping.address,
+          products: this.shipping.products.items,
+          ship_id: this.shipping.ship_id
+        })
+      });
+      let result = await data.json();
+      if (result.status === 200) {
+        this.$router.push('/pending');
       }
     }
   }

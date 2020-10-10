@@ -12,6 +12,9 @@ admin.use('/balance', require('./admin/balance').router);
 admin.use('/orders', require('./admin/orders').router);
 admin.use('/products', require('./admin/products').router);
 admin.use('/tracking-hook', require('./admin/tracking-hook').router);
+admin.use('/country-shipping', (req, res) => {
+  res.json(dship.countryShipping());
+});
 admin.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });

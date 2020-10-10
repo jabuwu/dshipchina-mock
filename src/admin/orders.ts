@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as dship from '../dship';
+import * as _ from 'lodash';
 
 export const router = express.Router();
 router.get('/', (req, res) => {
@@ -7,6 +8,37 @@ router.get('/', (req, res) => {
   let db = dship.db(api);
   let orders = db.get('orders').value();
   res.json({ orders });
+});
+router.post('/', (req, res) => {
+  let country_id = Number(req.body.address.country);
+  let ship_id = Number(req.body.ship_id);
+  let api: string = (<any>req).api;
+  let db = dship.db(api);
+  let time2 = dship.unixTime(); // TODO: not sure how this is calculated
+  let { weight, volume, shipping } = dship.calculateShippingProducts(db, country_id, req.body.products);
+  let shippingMethod = _.find(shipping, { ship_id });
+  if (!shippingMethod) {
+    return dship.response(res, { status: 530 }); // TODO: check actual return code
+  }
+  let ship_fee = shippingMethod.ship_fee;
+  let order = dship.createOrder(db, {
+    weight,
+    volume,
+    time2,
+    ship_fee,
+    ship_id,
+    country_id,
+    city: req.body.address.city,
+    state: req.body.address.state,
+    street: req.body.address.street,
+    zipcode: req.body.address.postal,
+    phone: req.body.address.phone,
+    recipient: req.body.address.recipient,
+    company: req.body.address.company,
+    note: '',
+    products: req.body.products
+  });
+  res.json({ status: 200, order });
 });
 router.put('/:id/ship', (req, res) => {
   let api: string = (<any>req).api;

@@ -385,6 +385,19 @@ export function shipRates() {
   }
   return shipRatesCache;
 }
+export function countryShipping() {
+  let result: any = {};
+  let rates = shipRates();
+  for (let i = 1; i < countryCodes.length; ++i) {
+    result[i] = [];
+    for (let rate of rates) {
+      if (rate.coid == i) {
+        result[i].push(rate.shid);
+      }
+    }
+  }
+  return result;
+}
 
 export class ShippingOption {
   ship_id: number;
@@ -440,6 +453,26 @@ export function calculateShipping(country_id: number, weight: number, volume?: n
   }
   return results;
 }
+export function calculateShippingProducts(db: any, country_id: number, products: { product_id: number, qty: number }[]) {
+  let weight = 0;
+  let volume = 0;
+  for (let item of products) {
+    let product = db.get('products').find({ product_id: item.product_id }).value();
+    if (!product) {
+      continue;
+    }
+    if (product.inventory < item.qty) {
+      continue;
+    }
+    if (product.weight) {
+      weight += product.weight * item.qty;
+    }
+    if (product.width && product.height && product.length) {
+      volume += product.width * product.height * product.length * item.qty;
+    }
+  }
+  return { weight, volume, shipping: calculateShipping(country_id, weight, volume) };
+};
 export function calculateShippingProductQuery(db: any, country_id: number, product_ids: { [ key: string ]: string }, qtys: { [ key: string ]: string }) {
   let weight = 0;
   let volume = 0;
