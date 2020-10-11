@@ -5,6 +5,10 @@ import * as bodyParser from 'body-parser';
 
 export const app = express();
 app.set('json spaces', 2);
+app.use((_req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
 
 let admin = express.Router();
 admin.use(bodyParser.json());
