@@ -12,6 +12,10 @@ export default function(req: express.Request, res: express.Response) {
   if (!req.query.time2) {
     return dship.response(res, { status: 505 });
   }
+  if (req.query.product_id) {
+    // NOTE: this reproduces a bug in dshipchina API
+    return dship.response(res, { status: 500 });
+  }
   let time1 = Number(req.query.time1);
   let time2 = Number(req.query.time2);
   if (isNaN(time1) || isNaN(time2)) {
