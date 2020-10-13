@@ -80,7 +80,7 @@ const Warehouse = Vue.component('warehouse', {
               </td>
               <td style="width: 25%; vertical-align: top">
                 <div v-if="shipping.products.count > 0">
-                  Address<br />
+                  Address <button @click="randomShipping()">Random</button><br />
                   <input placeholder="Recipient" v-model="shipping.address.recipient" @input="updateShipping()" /><br />
                   <input placeholder="Company (optional)" v-model="shipping.address.company" @input="updateShipping()" /><br />
                   <input placeholder="Street Address" v-model="shipping.address.street" @input="updateShipping()" /><br />
@@ -193,6 +193,17 @@ const Warehouse = Vue.component('warehouse', {
         Vue.set(this.products, ind, this.products[ind]);
       }
     },
+    randomShipping() {
+      this.shipping.address.recipient = faker.name.firstName() + ' ' + faker.name.lastName();
+      this.shipping.address.company = Math.random() < 0.2 ? faker.company.companyName() : '';
+      this.shipping.address.street = faker.address.streetAddress();
+      this.shipping.address.city = faker.address.city();
+      this.shipping.address.state = faker.address.state();
+      this.shipping.address.country = Math.floor(Math.random() * (this.countryList.length - 1)) + 1;
+      this.shipping.address.zipcode = faker.address.zipCode();
+      this.shipping.address.phone = faker.phone.phoneNumber();
+      this.changeCountry();
+    },
     updateShipping() {
       this.shipping.products.count = 0;
       this.shipping.products.items = [];
@@ -206,7 +217,6 @@ const Warehouse = Vue.component('warehouse', {
         }
       }
       this.shipping.address.ready = !!(this.shipping.address.recipient && this.shipping.address.street && this.shipping.address.city && this.shipping.address.state && this.shipping.address.country && this.shipping.address.zipcode && this.shipping.address.phone);
-      console.log(this.shipping);
     },
     changeCountry() {
       this.shipping.ship_id = 0;
