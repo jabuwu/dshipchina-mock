@@ -294,7 +294,7 @@ export function parseQuery(req: express.Request, options: ParseQueryOptions = {}
     let split = param.split('=');
     if (split.length == 2) {
       let key = split[0];
-      let value = split[1];
+      let value = decodeURIComponent(split[1]);
       let index: string | null = null;
       let indMatch = key.match(/\[.*\]$/);
       if (indMatch) {
