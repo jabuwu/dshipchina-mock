@@ -1,7 +1,8 @@
 import * as express from 'express';
 import * as _ from 'lodash';
 import * as URL from 'url';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
+import * as env from './env';
 import { shippingMethods, countryCodes } from './constants';
 const axios = require('axios');
 
@@ -13,10 +14,11 @@ export function validApi(api?: string) {
 }
 
 let dbs: { [ api: string ]: any } = {};
+fs.ensureDirSync(env.DATA_DIR);
 export function db(api: string): any {
   let db = dbs[api];
   if (!db) {
-    let adapter = new FileSync(`db/${api}.json`);
+    let adapter = new FileSync(`${env.DATA_DIR}/${api}.json`);
     db = low(adapter);
     dbs[api] = db;
   }
