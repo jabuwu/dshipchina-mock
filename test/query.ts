@@ -58,5 +58,10 @@ describe('dship.ts', function() {
         key: 'abc'
       });
     });
+    it('should decode uri components', async function() {
+      expect(parseQuery('?key=hello%20world')).to.eql({
+        key: 'hello world'
+      });
+    });
   });
 });
