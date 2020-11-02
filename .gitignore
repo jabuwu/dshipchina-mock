@@ -4,3 +4,4 @@ db/*
 coverage/
 getshiprate.json
 .env
+dist/
