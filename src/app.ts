@@ -1,5 +1,5 @@
 import * as dship from './dship';
-import * as express from 'express';
+import express from 'express';
 import * as path from 'path';
 import * as bodyParser from 'body-parser';
 
@@ -10,13 +10,13 @@ app.use((_req, res, next) => {
   next();
 });
 
-let admin = express.Router();
+let admin: express.Router = express.Router();
 admin.use(bodyParser.json());
 admin.use('/balance', require('./admin/balance').router);
 admin.use('/orders', require('./admin/orders').router);
 admin.use('/products', require('./admin/products').router);
 admin.use('/tracking-hook', require('./admin/tracking-hook').router);
-admin.use('/country-shipping', (req, res) => {
+admin.use('/country-shipping', (_req, res) => {
   res.json(dship.countryShipping());
 });
 admin.use((_req, res) => {
@@ -24,13 +24,14 @@ admin.use((_req, res) => {
 });
 app.use('/admin/:api', (req, res, next) => {
   if (!dship.validApi(req.params['api'])) {
-    return res.status(400).json({ error: 'Bad API key' });
+    res.status(400).json({ error: 'Bad API key' });
+    return;
   }
   (<any>req).api = req.params['api'];
   admin(req, res, next)
 });
 
-let api1 = express.Router();
+let api1: express.Router = express.Router();
 api1.get('/createorder.php', require('./api1/createorder').default);
 api1.get('/createproduct.php', require('./api1/createproduct').default);
 api1.get('/editproduct.php', require('./api1/editproduct').default);
@@ -47,7 +48,7 @@ api1.use((_req, res) => {
 });
 app.use('/api1', api1);
 
-let api4 = express.Router();
+let api4: express.Router = express.Router();
 api4.get('/getbalance.php', require('./api4/getbalance').default);
 api4.get('/getbillrecord.php', require('./api4/getbillrecord').default);
 api4.get('/getship1.php', require('./api4/getship1').default);

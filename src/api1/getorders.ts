@@ -18,7 +18,7 @@ export default function(req: express.Request, res: express.Response) {
     return dship.response(res, { status: 500 });
   }
   let db = dship.db(req.query.key as string);
-  let orders = db.get('orders').filter(o => o.time2 >= time1 && o.time2 <= time2).value();
+  let orders = db.get('orders').filter((o: any) => o.time2 >= time1 && o.time2 <= time2).value();
   if (orders.length === 0) {
     return dship.response(res, { status: 500 });
   }

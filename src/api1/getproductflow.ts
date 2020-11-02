@@ -23,7 +23,7 @@ export default function(req: express.Request, res: express.Response) {
   }
   try {
     let db = dship.db(req.query.key as string);
-    let product_flow = db.get('product_flow').filter(o => o.time >= time1 && o.time <= time2).value();
+    let product_flow = db.get('product_flow').filter((o: any) => o.time >= time1 && o.time <= time2).value();
     if (product_flow.length === 0) {
       return dship.response(res, { status: 500 });
     }

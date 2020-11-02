@@ -243,7 +243,7 @@ export function resetOrder(db: any, id: number) {
 export function cancelOrder(db: any, id: number) {
   let order = db.get('orders').find({ waybill_id: id }).value() as Order;
   if (!order) {
-    return null;
+    return;
   }
   for (let product of order.products) {
     createProductFlow(db, product.product_id, 5, product.qty);
@@ -308,7 +308,7 @@ export function parseQuery(req: express.Request, options: ParseQueryOptions = {}
           if (typeof result[key] === 'string' || !result[key]) {
             result[key] = {};
           }
-          result[key][index] = value;
+          (<any>result)[key][index] = value;
         }
       } else {
         result[key] = value;
@@ -375,7 +375,7 @@ export function fakeShipRates() {
   }
   return results;
 }
-let shipRatesCache = null;
+let shipRatesCache: any = null;
 export function shipRates() {
   if (shipRatesCache) {
     return shipRatesCache;
@@ -416,19 +416,19 @@ export function calculateShippingDship(country_id: number, ship_id: number, weig
   volume = volume === null ? 0 : volume;
   switch (row.typ) {
   case 1:
-    wei = (weight > volume / 5) ? weight : volume / 5;
+    wei = (weight > volume! / 5) ? weight : volume! / 5;
     break;  
   case 2:
     wei = weight;
     break;
   case 3:
-    wei = (weight > volume / 2) ? weight : volume / 2;
+    wei = (weight > volume! / 2) ? weight : volume! / 2;
     break;
   case 4:
-    wei = (weight > volume / 6) ? weight : volume / 6;
+    wei = (weight > volume! / 6) ? weight : volume! / 6;
     break;
   default:
-    wei = (weight > volume / 5) ? weight : volume / 5;
+    wei = (weight > volume! / 5) ? weight : volume! / 5;
   }
   let shippingcost: number;
   if (wei <= row.weibo || row.weibo == 0) {
