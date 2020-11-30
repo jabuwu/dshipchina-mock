@@ -49,7 +49,7 @@
             <td>
               <div v-if="product.inventory > 0">
                 Ship quantity:<br />
-                <input v-model.number="product.ship_count" type="number" min="0" :max="product.inventory" @input="updateShipping()" @change="updateShipping()" :style="product.ship_count > product.inventory ? { color: 'red', border: '2px solid red', 'background-color': '#fee' } : (product.ship_count > 0 ? { color: 'green', border: '2px solid green', 'background-color': '#efe' } : {})" />
+                <input v-model.number="product.ship_count" type="number" min="0" :max="product.inventory" @input="updateShipping();fetchRates()" :style="product.ship_count > product.inventory ? { color: 'red', border: '2px solid red', 'background-color': '#fee' } : (product.ship_count > 0 ? { color: 'green', border: '2px solid green', 'background-color': '#efe' } : {})" />
               </div>
               <button v-if="product.inventory === 0" type="button" class="btn btn-danger" @click="productDelete(ind)" :disabled="product.busy">Delete</button>
             </td>
@@ -71,13 +71,13 @@
             </td>
             <td style="width: 25%; vertical-align: top">
               <div v-if="shipping.products.count > 0">
-                Address <button @click="randomShipping()">Random</button><br />
+                Address <button @click="randomShipping();fetchRates()">Random</button><br />
                 <input placeholder="Recipient" v-model="shipping.address.recipient" @input="updateShipping()" /><br />
                 <input placeholder="Company (optional)" v-model="shipping.address.company" @input="updateShipping()" /><br />
                 <input placeholder="Street Address" v-model="shipping.address.street" @input="updateShipping()" /><br />
                 <input placeholder="City" v-model="shipping.address.city" @input="updateShipping()" /><br />
                 <input placeholder="State / Region" v-model="shipping.address.state" @input="updateShipping()" /><br />
-                <select v-model="shipping.address.country" @input="changeCountry()">
+                <select v-model="shipping.address.country" @input="changeCountry();fetchRates()">
                   <option v-for="(country, i) of countryList" v-if="i != 0" :value="i">{{ country }}</option>
                 </select><br />
                 <input placeholder="Postal Code" v-model="shipping.address.zipcode" @input="updateShipping()" /><br />
@@ -88,12 +88,13 @@
               <div v-if="shipping.address.ready && countryShipping">
                 Ship Method<br />
                 <select v-model="shipping.ship_id">
-                  <option v-for="(method, i) of shippingMethods" v-if="i != 0 && countryShipping[shipping.address.country].indexOf(String(i)) != -1" :value="i">{{ method }}</option>
+                  <option v-for="(method, i) of shippingMethods" v-if="i != 0 && countryShipping[shipping.address.country].indexOf(String(i)) != -1" :value="i">{{ method }}{{ shipping.rates ? (' $' + shipping.rates[i]) : '' }}</option>
                 </select><br />
               </div>
             </td>
             <td style="width: 25%; vertical-align: top">
               <div v-if="shipping.ship_id > 0">
+                <p v-if="shipping.rates"><b>Cost:</b> ${{ shipping.rates[shipping.ship_id] }}</p>
                 <button @click="checkout()">Ship</button>
               </div>
             </td>
@@ -106,7 +107,7 @@
 
 <script>
 import Vue from 'vue';
-import { countryList, shippingMethods } from '../constants';
+import { countryList, countryCodes, shippingMethods } from '../constants';
 import InputEdit from '../components/input-edit.vue';
 import { prepareProduct } from '../util';
 
@@ -133,7 +134,8 @@ export default {
         zipcode: '',
         phone: ''
       },
-      ship_id: 0
+      ship_id: 0,
+      rates: null
     },
     countryList,
     shippingMethods,
@@ -223,6 +225,32 @@ export default {
     changeCountry() {
       this.shipping.ship_id = 0;
       this.updateShipping();
+    },
+    fetchRates() {
+      setTimeout(async () => {
+        try {
+          this.shipping.rates = null;
+          let query = '';
+          let queryIndex = 0;
+          for (let product of this.products) {
+            if (product.ship_count > 0 && product.ship_count <= product.inventory) {
+              query += `&product_id[${queryIndex}]=${product.product_id}&qty[${queryIndex}]=${product.ship_count}`;
+              queryIndex++;
+            }
+          }
+          query += `&country_code=${countryCodes[this.shipping.address.country]}`;
+          let data = await fetch(`/api4/getship2.php?key=abc&${query}`);
+          let ship = (await data.json()).ship;
+          console.log(ship);
+          this.shipping.rates = {};
+          for (let entry of ship) {
+            this.shipping.rates[entry.ship_id] = entry.ship_fee;
+          }
+          console.log(this.shipping.rates);
+        } catch (err) {
+          this.shipping.rates = null;
+        }
+      }, 0);
     },
     async checkout() {
       let data = await fetch(`/admin/${this.$store.state.key}/orders`, {
