@@ -11,24 +11,33 @@ app.use((_req, res, next) => {
 
 const admin: express.Router = express.Router();
 admin.use(bodyParser.json());
-admin.use('/balance', require('./admin/balance').router);
-admin.use('/orders', require('./admin/orders').router);
-admin.use('/products', require('./admin/products').router);
-admin.use('/tracking-hook', require('./admin/tracking-hook').router);
-admin.use('/country-shipping', (_req, res) => {
+admin.get('/country-shipping', (_req, res) => {
   res.json(dship.countryShipping());
 });
-admin.use((_req, res) => {
-  res.status(404).json({ error: 'Not found' });
+admin.post('/getshiprate', async (req, res) => {
+  let key = req.body.key as string;
+  if (key) {
+    res.json({ success: await dship.fetchRealShipRates(key) });
+  } else {
+    res.status(400).json({ error: 'Missing key' });
+  }
 });
-app.use('/admin/:api', (req, res, next) => {
+admin.use('/:api/*', (req, res, next) => {
   if (!dship.validApi(req.params['api'])) {
     res.status(400).json({ error: 'Bad API key' });
     return;
   }
   (<any>req).api = req.params['api'];
-  admin(req, res, next)
+  next();
 });
+admin.use('/:api/balance', require('./admin/balance').router);
+admin.use('/:api/orders', require('./admin/orders').router);
+admin.use('/:api/products', require('./admin/products').router);
+admin.use('/:api/tracking-hook', require('./admin/tracking-hook').router);
+admin.use((_req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+app.use('/admin', admin);
 
 const api1: express.Router = express.Router();
 api1.get('/createorder.php', require('./api1/createorder').default);

@@ -388,6 +388,26 @@ export function shipRates() {
   }
   return shipRatesCache;
 }
+export async function fetchRealShipRates(realApiKey: string): Promise<boolean> {
+  try {
+    let { data } = await axios('https://www.dshipchina.com/api4/getshiprate.php', {
+      method: 'get',
+      params: {
+        key: realApiKey
+      }
+    });
+    if (typeof data === 'object') {
+      if (typeof data.status != 'number' || data.status == 200) {
+        await fs.writeJson('./getshiprate.json', data, { spaces: 2 });
+        shipRatesCache = data;
+        return true;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
 export function countryShipping() {
   let result: any = {};
   let rates = shipRates();

@@ -151,7 +151,7 @@ export default {
   },
   methods: {
     async getCountryShipping() {
-      let data = await fetch(`/admin/${this.$store.state.key}/country-shipping`);
+      let data = await fetch(`/admin/country-shipping`);
       this.countryShipping = await data.json();
     },
     async productCreate() {
