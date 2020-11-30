@@ -26,7 +26,7 @@ const routes = [
   { path: '/shipped', component: Shipped },
   { path: '/warehouse', component: Warehouse }
 ];
-const router = new VueRouter({ routes });
+const router = new VueRouter({ routes, mode: 'history' });
 new Vue({
   router,
   store,
