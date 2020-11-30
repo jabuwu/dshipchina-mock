@@ -1,6 +1,7 @@
 <template>
   <div>
     <button type="button" class="btn btn-primary my-3" @click="productCreate()">Create Product</button>
+    <button type="button" class="btn btn-info my-3" @click="productCreateFake()">Create Fake Product</button>
     <div v-if="loading" class="text-center mt-5">
       <div class="spinner-border" role="status">
         <span class="sr-only">Loading...</span>
@@ -158,6 +159,30 @@ export default {
     },
     async productCreate() {
       let result = await fetch(`/admin/${this.$store.state.key}/products`, { method: 'POST' });
+      if (result.status === 200) {
+        let { product } = await result.json();
+        prepareProduct(product);
+        this.products.splice(0, 0, product);
+        Vue.set(this.products, 0, this.products[0]);
+      }
+    },
+    async productCreateFake() {
+      let result = await fetch(`/admin/${this.$store.state.key}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          product_name: faker.commerce.productName(),
+          note: faker.commerce.productAdjective(),
+          declare_name: faker.commerce.product(),
+          declare_value: Number(faker.commerce.price()),
+          weight: 100 + Math.floor(Math.random() * 4900),
+          length: 10 + Math.floor(Math.random() * 90),
+          width: 10 + Math.floor(Math.random() * 90),
+          height: 10 + Math.floor(Math.random() * 90)
+        })
+      });
       if (result.status === 200) {
         let { product } = await result.json();
         prepareProduct(product);
