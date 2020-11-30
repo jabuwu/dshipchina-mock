@@ -14,7 +14,7 @@ export default function(req: express.Request, res: express.Response) {
     note: query.note,
     declare_name: query.declared_name,
     declare_name_cn: query.declared_name_cn,
-    declare_value: Number(query.declared_value)
+    declare_value: Number(query.declared_value || 0)
   };
   let product = dship.createProduct(db, data);
   dship.response(res, { status: '200', product_id: String(product.product_id) });
