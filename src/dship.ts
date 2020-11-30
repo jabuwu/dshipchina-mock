@@ -90,7 +90,8 @@ export function productToJson(product: Product) {
     length: product.length == null ? '0' : String(product.length),
     width: product.width == null ? '0' : String(product.width),
     height: product.height == null ? '0' : String(product.height),
-    product_type: String(product.product_type)
+    product_type: String(product.product_type),
+    inventory: String(product.inventory)
   };
 }
 

@@ -12,7 +12,9 @@ export default function(req: express.Request, res: express.Response) {
     sku: query.sku,
     product_name: query.product_name,
     note: query.note,
-    declare_name: query.declared_value ? Number(query.declared_value).toFixed(2) : undefined // this mimicks a bug in the real dshipchina api
+    declare_name: query.declared_name,
+    declare_name_cn: query.declared_name_cn,
+    declare_value: Number(query.declared_value)
   };
   let product = dship.createProduct(db, data);
   dship.response(res, { status: '200', product_id: String(product.product_id) });
