@@ -23,7 +23,7 @@ export default {
     newBalance: 0
   }),
   async mounted() {
-    let data = await fetch('/admin/abc/balance');
+    let data = await fetch(`/admin/${this.$store.state.key}/balance`);
     this.newBalance = (await data.json()).balance;
     this.balance = this.newBalance.toFixed(2);
     this.loading = false;
@@ -31,7 +31,7 @@ export default {
   methods: {
     async balanceSet() {
       this.loading = true;
-      let result = await fetch(`/admin/abc/balance`, {
+      let result = await fetch(`/admin/${this.$store.state.key}/balance`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

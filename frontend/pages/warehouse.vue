@@ -141,7 +141,7 @@ export default {
   }),
   async mounted() {
     this.getCountryShipping();
-    let data = await fetch('/admin/abc/products');
+    let data = await fetch(`/admin/${this.$store.state.key}/products`);
     this.products = (await data.json()).products;
     for (let product of this.products) {
       prepareProduct(product);
@@ -151,11 +151,11 @@ export default {
   },
   methods: {
     async getCountryShipping() {
-      let data = await fetch('/admin/abc/country-shipping');
+      let data = await fetch(`/admin/${this.$store.state.key}/country-shipping`);
       this.countryShipping = await data.json();
     },
     async productCreate() {
-      let result = await fetch(`/admin/abc/products`, { method: 'POST' });
+      let result = await fetch(`/admin/${this.$store.state.key}/products`, { method: 'POST' });
       if (result.status === 200) {
         let { product } = await result.json();
         prepareProduct(product);
@@ -166,7 +166,7 @@ export default {
     async productDelete(ind) {
       this.products[ind].busy = true;
       Vue.set(this.products, ind, this.products[ind]);
-      let result = await fetch(`/admin/abc/products/${this.products[ind].product_id}`, { method: 'DELETE' });
+      let result = await fetch(`/admin/${this.$store.state.key}/products/${this.products[ind].product_id}`, { method: 'DELETE' });
       if (result.status === 200) {
         Vue.delete(this.products, ind);
       } else {
@@ -177,7 +177,7 @@ export default {
     async productPut(ind, key, value) {
       this.products[ind].busy = true;
       Vue.set(this.products, ind, this.products[ind]);
-      let result = await fetch(`/admin/abc/products/${this.products[ind].product_id}`, {
+      let result = await fetch(`/admin/${this.$store.state.key}/products/${this.products[ind].product_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -225,7 +225,7 @@ export default {
       this.updateShipping();
     },
     async checkout() {
-      let data = await fetch('/admin/abc/orders', {
+      let data = await fetch(`/admin/${this.$store.state.key}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

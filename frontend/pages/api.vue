@@ -19,7 +19,7 @@ export default {
     url: ''
   }),
   async mounted() {
-    let data = await fetch('/admin/abc/tracking-hook');
+    let data = await fetch(`/admin/${this.$store.state.key}/tracking-hook`);
     this.url = (await data.json()).url;
     this.loading = false;
   },
@@ -27,7 +27,7 @@ export default {
     async urlSet(url) {
       if (url === '' || isValidURL(url)) {
         this.loading = true;
-        let result = await fetch(`/admin/abc/tracking-hook`, {
+        let result = await fetch(`/admin/${this.$store.state.key}/tracking-hook`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'

@@ -25,7 +25,7 @@ export default {
     orders: []
   }),
   async mounted() {
-    let data = await fetch('/admin/abc/orders');
+    let data = await fetch(`/admin/${this.$store.state.key}/orders`);
     this.orders = (await data.json()).orders;
     for (let order of this.orders) {
       prepareOrder(order);
@@ -35,7 +35,7 @@ export default {
   },
   methods: {
     async reset(obj) {
-      await fetch(`/admin/abc/orders/${this.orders[obj.ind].waybill_id}/reset`, {
+      await fetch(`/admin/${this.$store.state.key}/orders/${this.orders[obj.ind].waybill_id}/reset`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

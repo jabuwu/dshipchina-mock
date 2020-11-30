@@ -25,7 +25,7 @@ export default {
     orders: []
   }),
   async mounted() {
-    let data = await fetch('/admin/abc/orders');
+    let data = await fetch(`/admin/${this.$store.state.key}/orders`);
     this.orders = (await data.json()).orders;
     for (let order of this.orders) {
       prepareOrder(order);
@@ -35,7 +35,7 @@ export default {
   },
   methods: {
     async ship(obj) {
-      await fetch(`/admin/abc/orders/${this.orders[obj.ind].waybill_id}/ship`, {
+      await fetch(`/admin/${this.$store.state.key}/orders/${this.orders[obj.ind].waybill_id}/ship`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -47,7 +47,7 @@ export default {
       this.orders.splice(obj.ind, 1);
     },
     async cancel(obj) {
-      await fetch(`/admin/abc/orders/${this.orders[obj.ind].waybill_id}`, {
+      await fetch(`/admin/${this.$store.state.key}/orders/${this.orders[obj.ind].waybill_id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'

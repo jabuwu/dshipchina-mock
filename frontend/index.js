@@ -12,6 +12,8 @@ import Returned from './pages/returned.vue';
 import Shipped from './pages/shipped.vue';
 import Warehouse from './pages/warehouse.vue';
 
+import store from './store';
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -27,5 +29,6 @@ const routes = [
 const router = new VueRouter({ routes });
 new Vue({
   router,
+  store,
   render: h => h(Layout)
 }).$mount('#app');
