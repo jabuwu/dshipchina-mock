@@ -5,7 +5,7 @@
     <hr />
     <div>
       <h3>Example API call</h3>
-      <code>http://localhost:3333/api1/getallproducts.php?key=abc</code>
+      <code>{{ origin }}/api1/getallproducts.php?key=abc</code>
     </div>
     <hr />
     <div>
@@ -14,3 +14,11 @@
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  data: () => ({
+    origin: location.origin
+  })
+}
+</script>
