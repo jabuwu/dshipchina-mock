@@ -9,25 +9,25 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#/warehouse">Warehouse</a>
+            <router-link to="/warehouse" class="nav-link" active-class="active">Warehouse</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#/pending">Pending</a>
+            <router-link to="/pending" class="nav-link" active-class="active">Pending</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#/shipped">Shipped</a>
+            <router-link to="/shipped" class="nav-link" active-class="active">Shipped</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#/received">Received</a>
+            <router-link to="/received" class="nav-link" active-class="active">Received</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#/returned">Returned</a>
+            <router-link to="/returned" class="nav-link" active-class="active">Returned</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#/finance">Finance</a>
+            <router-link to="/finance" class="nav-link" active-class="active">Finance</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#/api">API</a>
+            <router-link to="/api" class="nav-link" active-class="active">API</router-link>
           </li>
         </ul>
       </div>
