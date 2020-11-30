@@ -1,20 +1,22 @@
-const Finance = Vue.component('finance', {
-  template: `
-    <div>
-      <h2 v-if="loading">Loading...</h2>
-      <h2 v-else>Balance: \${{ balance }}</h2>
-      <div class="row">
-        <div v-if="!loading" class="col-md-6">
-          <div class="input-group mb-6">
-            <input type="number" class="form-control" v-model="newBalance">
-            <div class="input-group-append">
-              <button class="btn btn-outline-secondary" type="button" @click="balanceSet()">Set</button>
-            </div>
+<template>
+  <div>
+    <h2 v-if="loading">Loading...</h2>
+    <h2 v-else>Balance: ${{ balance }}</h2>
+    <div class="row">
+      <div v-if="!loading" class="col-md-6">
+        <div class="input-group mb-6">
+          <input type="number" class="form-control" v-model="newBalance">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" @click="balanceSet()">Set</button>
           </div>
         </div>
       </div>
     </div>
-  `,
+  </div>
+</template>
+
+<script>
+export default {
   data: () => ({
     loading: true,
     balance: 0,
@@ -45,4 +47,5 @@ const Finance = Vue.component('finance', {
       this.loading = false;
     }
   }
-});
+};
+</script>

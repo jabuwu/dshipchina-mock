@@ -1,16 +1,19 @@
-function isValidURL(string) {
-  var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
-  return (res !== null)
-};
+<template>
+  <div>
+    <h2 v-if="loading">Loading...</h2>
+    <h2 v-else>Tracking Hook URL</h2>
+    <input-edit :value="url" @change="urlSet($event)" />
+  </div>
+</template>
 
-const Api = Vue.component('api', {
-  template: `
-    <div>
-      <h2 v-if="loading">Loading...</h2>
-      <h2 v-else>Tracking Hook URL</h2>
-      <input-edit :value="url" @change="urlSet($event)" />
-    </div>
-  `,
+<script>
+import InputEdit from '../components/input-edit.vue';
+import { isValidURL } from '../util';
+
+export default {
+  components: {
+    InputEdit
+  },
   data: () => ({
     loading: true,
     url: ''
@@ -47,5 +50,5 @@ const Api = Vue.component('api', {
       this.loading = false;
     }
   }
-});
-
+};
+</script>

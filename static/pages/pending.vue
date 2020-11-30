@@ -1,17 +1,25 @@
-const Pending = Vue.component('pending', {
-  template: `
-    <div>
-      <h1>Pending</h1>
-      <div v-if="loading" class="text-center mt-5">
-        <div class="spinner-border" role="status">
-          <span class="sr-only">Loading...</span>
-        </div>
-      </div>
-      <div v-else>
-        <order-table :orders="orders" :shipped="false" :status="30" @ship="ship($event)" @cancel="cancel($event)" />
+<template>
+  <div>
+    <h1>Pending</h1>
+    <div v-if="loading" class="text-center mt-5">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
       </div>
     </div>
-  `,
+    <div v-else>
+      <order-table :orders="orders" :shipped="false" :status="30" @ship="ship($event)" @cancel="cancel($event)" />
+    </div>
+  </div>
+</template>
+
+<script>
+import OrderTable from '../components/order-table.vue';
+import { prepareOrder } from '../util';
+
+export default {
+  components: {
+    OrderTable
+  },
   data: () => ({
     loading: true,
     orders: []
@@ -48,4 +56,5 @@ const Pending = Vue.component('pending', {
       this.orders.splice(obj.ind, 1);
     }
   }
-});
+};
+</script>

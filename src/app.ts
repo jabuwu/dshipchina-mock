@@ -1,6 +1,5 @@
 import * as dship from './dship';
 import express from 'express';
-import * as path from 'path';
 import * as bodyParser from 'body-parser';
 
 export const app = express();
@@ -10,7 +9,7 @@ app.use((_req, res, next) => {
   next();
 });
 
-let admin: express.Router = express.Router();
+const admin: express.Router = express.Router();
 admin.use(bodyParser.json());
 admin.use('/balance', require('./admin/balance').router);
 admin.use('/orders', require('./admin/orders').router);
@@ -31,7 +30,7 @@ app.use('/admin/:api', (req, res, next) => {
   admin(req, res, next)
 });
 
-let api1: express.Router = express.Router();
+const api1: express.Router = express.Router();
 api1.get('/createorder.php', require('./api1/createorder').default);
 api1.get('/createproduct.php', require('./api1/createproduct').default);
 api1.get('/editproduct.php', require('./api1/editproduct').default);
@@ -48,7 +47,7 @@ api1.use((_req, res) => {
 });
 app.use('/api1', api1);
 
-let api4: express.Router = express.Router();
+const api4: express.Router = express.Router();
 api4.get('/getbalance.php', require('./api4/getbalance').default);
 api4.get('/getbillrecord.php', require('./api4/getbillrecord').default);
 api4.get('/getship1.php', require('./api4/getship1').default);
@@ -60,7 +59,10 @@ api4.use((_req, res) => {
 });
 app.use('/api4', api4);
 
-app.use(express.static(path.join(__dirname, '../static')));
+export const frontend: express.Router = express.Router();
+app.use(frontend);
+
+//app.use(express.static(path.join(__dirname, '../static')));
 app.use((_req, res) => {
   res.send('Not found.');
 });

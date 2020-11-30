@@ -1,14 +1,16 @@
-Vue.component('input-edit', {
-  template: `
-    <div>
-      <div v-if="editing">
-        <input :type="type" ref="input" v-model="newValue" @blur="commit()" @keydown.enter="commit()" @keydown.esc="cancel()" :disabled="disabled" />
-      </div>
-      <div v-else>
-        {{ oldValue }} <button @click="edit()" :disabled="disabled">Edit</button>
-      </div>
+<template>
+  <div>
+    <div v-if="editing">
+      <input :type="type" ref="input" v-model="newValue" @blur="commit()" @keydown.enter="commit()" @keydown.esc="cancel()" :disabled="disabled" />
     </div>
-  `,
+    <div v-else>
+      {{ oldValue }} <button @click="edit()" :disabled="disabled">Edit</button>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
   data: () => ({
     oldValue: '',
     newValue: '',
@@ -60,4 +62,5 @@ Vue.component('input-edit', {
       this.oldValue = this.value;
     }
   }
-});
+};
+</script>
