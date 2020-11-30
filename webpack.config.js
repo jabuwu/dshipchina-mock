@@ -13,9 +13,9 @@ module.exports = {
     splitChunks: false,
     noEmitOnErrors: true
   },
-  entry: production ? { index: './static/index.js' } : [
+  entry: production ? { index: './frontend/index.js' } : [
     'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true',
-    './static/index.js',
+    './frontend/index.js',
   ],
   output: {
     path: path.resolve(__dirname, 'dist/frontend'),
@@ -48,7 +48,7 @@ module.exports = {
   plugins: production ? [
     new CopyPlugin({
       patterns: [
-        { from: 'static/index.html', to: 'index.html' },
+        { from: 'frontend/index.html', to: 'index.html' },
       ],
     }),
     new VueLoaderPlugin(),
@@ -57,7 +57,7 @@ module.exports = {
     new webpack.HotModuleReplacementPlugin(),
     new CopyPlugin({
       patterns: [
-        { from: 'static/index.html', to: 'index.html' },
+        { from: 'frontend/index.html', to: 'index.html' },
       ],
     }),
     new VueLoaderPlugin(),
