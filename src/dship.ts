@@ -342,6 +342,33 @@ export function parseProductQuery(product_ids: { [ key: string ]: string }, qtys
   return products;
 }
 
+export class ShipRate {
+  coid: number;
+  shid: number;
+  fwei: number;
+  awei: number;
+  ffee: number;
+  afee: number;
+  weibo: number;
+  bofwei: number;
+  boawei: number;
+  boffee: number;
+  boafee: number;
+  fufee: number;
+  refee: number;
+  sen2: number;
+  sen3: number;
+  sen4: number;
+  sen5: number;
+  sen6: number;
+  minwei: number;
+  maxwei: number;
+  typ: number;
+  date1: number;
+  date2: number;
+  note: string;
+  time: number;
+}
 const realShipRates = _.attempt(fs.readFileSync, './getshiprate.json');
 export function fakeShipRates() {
   let results: any[] = [];
@@ -376,8 +403,8 @@ export function fakeShipRates() {
   }
   return results;
 }
-let shipRatesCache: any = null;
-export function shipRates() {
+let shipRatesCache: ShipRate[];
+export function shipRates(): ShipRate[] {
   if (shipRatesCache) {
     return shipRatesCache;
   }
@@ -385,6 +412,9 @@ export function shipRates() {
     shipRatesCache = fakeShipRates();
   } else {
     shipRatesCache = JSON.parse(realShipRates.toString());
+  }
+  for (let i = 0; i < shipRatesCache.length; ++i) {
+    shipRatesCache[i] = _.mapValues(shipRatesCache[i], (o, k) => k == 'note' ? o : Number(o)) as any;
   }
   return shipRatesCache;
 }
@@ -423,54 +453,51 @@ export function countryShipping() {
 }
 
 export class ShippingOption {
-  ship_id: number;
+  ship_id: string;
   ship_fee: number;
-}
-export function calculateShippingDship(country_id: number, ship_id: number, weight: number, volume?: number | null): number | null {
-  let fetch = shipRates();
-  let row = _.find(fetch, { coid: String(country_id), shid: String(ship_id) });
-  if (!row) {
-    return null;
-  }
-  row = _.mapValues(row, o => Number(o));
-  let wei: number;
-  volume = volume === null ? 0 : volume;
-  switch (row.typ) {
-  case 1:
-    wei = (weight > volume! / 5) ? weight : volume! / 5;
-    break;  
-  case 2:
-    wei = weight;
-    break;
-  case 3:
-    wei = (weight > volume! / 2) ? weight : volume! / 2;
-    break;
-  case 4:
-    wei = (weight > volume! / 6) ? weight : volume! / 6;
-    break;
-  default:
-    wei = (weight > volume! / 5) ? weight : volume! / 5;
-  }
-  let shippingcost: number;
-  if (wei <= row.weibo || row.weibo == 0) {
-    let addedcount = Math.ceil((wei - row.fwei) > 0 ? (wei - row.fwei) / row.awei : 0);
-    let sensp = 1; // TODO: calculate special shipping costs
-    shippingcost = (row.ffee + row.afee * addedcount + row.refee) * (row.fufee / 100 + 1) * sensp;
-  } else {
-    let addedcount = Math.ceil((wei - row.bofwei) > 0 ? (wei-row.bofwei) / row.boawei : 0);
-    let sensp = 1; // TODO: calculate special shipping costs
-    shippingcost = (row.boffee + row.boafee * addedcount + row.refee) * (row.fufee / 100 + 1) * sensp;
-  }
-  return Math.round(shippingcost * 100) / 100;
+  min_day: string;
+  max_day: string;
+  ship_note: string;
 }
 export function calculateShipping(country_id: number, weight: number, volume?: number | null): ShippingOption[] {
+  let fetch = shipRates();
   let results: ShippingOption[] = [];
-  for (let i = 1; i < shippingMethods.length; ++i) {
-    let fee = calculateShippingDship(country_id, i, weight, volume);
-    if (fee !== null) {
+  for (let row of fetch) {
+    if (row.coid === country_id) {
+      let wei: number;
+      volume = volume === null ? 0 : volume;
+      switch (row.typ) {
+      case 1:
+        wei = (weight > volume! / 5) ? weight : volume! / 5;
+        break;  
+      case 2:
+        wei = weight;
+        break;
+      case 3:
+        wei = (weight > volume! / 2) ? weight : volume! / 2;
+        break;
+      case 4:
+        wei = (weight > volume! / 6) ? weight : volume! / 6;
+        break;
+      default:
+        wei = (weight > volume! / 5) ? weight : volume! / 5;
+      }
+      let shippingcost: number;
+      if (wei <= row.weibo || row.weibo == 0) {
+        let addedcount = Math.ceil((wei - row.fwei) > 0 ? (wei - row.fwei) / row.awei : 0);
+        let sensp = 1; // TODO: calculate special shipping costs
+        shippingcost = (row.ffee + row.afee * addedcount + row.refee) * (row.fufee / 100 + 1) * sensp;
+      } else {
+        let addedcount = Math.ceil((wei - row.bofwei) > 0 ? (wei-row.bofwei) / row.boawei : 0);
+        let sensp = 1; // TODO: calculate special shipping costs
+        shippingcost = (row.boffee + row.boafee * addedcount + row.refee) * (row.fufee / 100 + 1) * sensp;
+      }
       results.push({
-        ship_id: i,
-        ship_fee: fee
+        ship_id: String(row.shid),
+        ship_fee: Math.round(shippingcost * 100) / 100,
+        min_day: String(row.date1),
+        max_day: String(row.date2),
+        ship_note: row.note
       });
     }
   }

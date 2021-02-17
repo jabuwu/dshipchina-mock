@@ -28,7 +28,10 @@ export default function(req: express.Request, res: express.Response) {
     let { weight, volume, shipping } = dship.calculateShippingProductQuery(db, country_id, product_ids, qtys);
     let ship = _.map(shipping, ship => ({
       ship_fee: ship.ship_fee,
-      ship_id: String(ship.ship_id)
+      ship_id: ship.ship_id,
+      min_day: ship.min_day,
+      max_day: ship.max_day,
+      ship_note: ship.ship_note
     }));
     dship.response(res, {
       status: 200,
