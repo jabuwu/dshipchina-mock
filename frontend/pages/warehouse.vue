@@ -79,7 +79,7 @@
                 <input placeholder="City" v-model="shipping.address.city" @input="updateShipping()" /><br />
                 <input placeholder="State / Region" v-model="shipping.address.state" @input="updateShipping()" /><br />
                 <select v-model="shipping.address.country" @input="changeCountry();fetchRates()">
-                  <option v-for="(country, i) of countryList" v-if="i != 0" :value="i">{{ country }}</option>
+                  <option v-for="(country, i) of countryList" :value="i" :key="i">{{ country }}</option>
                 </select><br />
                 <input placeholder="Postal Code" v-model="shipping.address.zipcode" @input="updateShipping()" /><br />
                 <input placeholder="Phone Number" v-model="shipping.address.phone" @input="updateShipping()" /><br />
@@ -89,13 +89,13 @@
               <div v-if="shipping.address.ready && countryShipping">
                 Ship Method<br />
                 <select v-model="shipping.ship_id">
-                  <option v-for="(method, i) of shippingMethods" v-if="i != 0 && countryShipping[shipping.address.country].indexOf(String(i)) != -1" :value="i">{{ method }}{{ shipping.rates ? (' $' + shipping.rates[i]) : '' }}</option>
+                  <option v-for="method of activeShippingMethods" :value="method.index" :key="method.index">{{ method.name }}{{ (shipping.rates && shipping.rates[method.index]) ? (' $' + shipping.rates[method.index].toFixed(2)) : '' }}</option>
                 </select><br />
               </div>
             </td>
             <td style="width: 25%; vertical-align: top">
               <div v-if="shipping.ship_id > 0">
-                <p v-if="shipping.rates"><b>Cost:</b> ${{ shipping.rates[shipping.ship_id] }}</p>
+                <p v-if="shipping.rates"><b>Cost:</b> {{ shipping.rates ? ('$' + shipping.rates[shipping.ship_id]) : '...' }}</p>
                 <button @click="checkout()">Ship</button>
               </div>
             </td>
@@ -138,8 +138,6 @@ export default {
       ship_id: 0,
       rates: null
     },
-    countryList,
-    shippingMethods,
     countryShipping: null
   }),
   async mounted() {
@@ -266,12 +264,10 @@ export default {
           query += `&country_code=${countryCodes[this.shipping.address.country]}`;
           let data = await fetch(`/api4/getship2.php?key=abc&${query}`);
           let ship = (await data.json()).ship;
-          console.log(ship);
           this.shipping.rates = {};
           for (let entry of ship) {
             this.shipping.rates[entry.ship_id] = entry.ship_fee;
           }
-          console.log(this.shipping.rates);
         } catch (err) {
           this.shipping.rates = null;
         }
@@ -292,7 +288,28 @@ export default {
       let result = await data.json();
       if (result.status === 200) {
         this.$router.push('/pending');
+      } else {
+        alert('Error occurred. Status: ' + result.status);
       }
+    }
+  },
+  computed: {
+    countryList() {
+      return countryList.slice(1);
+    },
+    activeShippingMethods() {
+      const methods = [];
+      for (let i = 0; i < shippingMethods.length; ++i) {
+        if (i !== 0) {
+          if (this.countryShipping[this.shipping.address.country].indexOf(i) != -1) {
+            methods.push({
+              name: shippingMethods[i],
+              index: i
+            });
+          }
+        }
+      }
+      return methods;
     }
   }
 };

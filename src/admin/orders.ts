@@ -16,7 +16,7 @@ router.post('/', (req, res) => {
   let db = dship.db(api);
   let time2 = dship.unixTime(); // TODO: not sure how this is calculated
   let { weight, volume, shipping } = dship.calculateShippingProducts(db, country_id, req.body.products);
-  let shippingMethod = _.find(shipping, { ship_id });
+  let shippingMethod = _.find(shipping, { ship_id: String(ship_id) }) as dship.ShippingOption;
   if (!shippingMethod) {
     return dship.response(res, { status: 530 }); // TODO: check actual return code
   }
