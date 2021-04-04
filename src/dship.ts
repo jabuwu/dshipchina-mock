@@ -86,6 +86,7 @@ export function productToJson(product: Product) {
     note: product.note == null ? '0' : product.note,
     declare_value: product.declare_value.toFixed(2),
     declare_name: product.declare_name == null ? '0' : product.declare_name,
+    declare_name_cn: product.declare_name_cn == null ? '0' : product.declare_name_cn,
     weight: product.weight == null ? '0' : String(product.weight),
     length: product.length == null ? '0' : String(product.length),
     width: product.width == null ? '0' : String(product.width),
