@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as URL from 'url';
 import * as fs from 'fs-extra';
 import * as env from './env';
-import { shippingMethods, countryCodes } from './constants';
+import { countryCodes } from './constants';
 const axios = require('axios');
 
 const low = require('lowdb');
@@ -15,12 +15,15 @@ export function validApi(api?: string) {
 
 let dbs: { [ api: string ]: any } = {};
 fs.ensureDirSync(env.DATA_DIR);
-export function db(api: string): any {
+export function db(api: string, { reset = false }: { reset?: boolean } = {}): any {
   let db = dbs[api];
   if (!db) {
     let adapter = new FileSync(`${env.DATA_DIR}/${api}.json`);
     db = low(adapter);
     dbs[api] = db;
+  }
+  if (reset) {
+    db.setState({});
   }
   db.defaults({
     balance: 9999999,
@@ -434,6 +437,30 @@ export async function fetchRealShipRates(realApiKey: string): Promise<boolean> {
       if (typeof data.status != 'number' || data.status == 200) {
         await fs.writeJson('./getshiprate.json', data, { spaces: 2 });
         setShipRatesCache(data);
+        return true;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+export async function importProducts(realApiKey: string, key: string): Promise<boolean> {
+  try {
+    let { data } = await axios('https://www.dshipchina.com/api1/getallproducts.php', {
+      method: 'get',
+      params: {
+        key: realApiKey
+      }
+    });
+    if (typeof data === 'object') {
+      if (typeof data.status != 'number' || data.status == 200) {
+        const database = db(key, { reset: true });
+        for (const product of data.products) {
+          product.declare_value = Number(product.declare_value);
+          database.set('next_product_id', Number(product.product_id)).write();
+          createProduct(database, product);
+        }
         return true;
       }
     }

@@ -18,20 +18,24 @@
     </div>
     <hr />
     <div>
-      <h3>Use real shipping data</h3>
-      <p>You can use more accurate shipping rates by getting the values directly from DShipChina.</p>
-      <p>Enter your <b>real</b> DShipChina API key below and press "Fetch Rates"</p>
+      <h3>Utilities</h3>
+      <p>Enter your <b>real</b> DShipChina API key below. You can use more accurate shipping rates by getting the values directly from DShipChina by pressing "Fetch Shipping Rates". You can import your existing products by pressing "Import Products".</p>
       <div class="input-group mt-3">
         <div class="input-group-prepend">
           <span class="input-group-text">dshipchina.com?key=</span>
         </div>
         <input type="text" class="form-control" placeholder="API Key" v-model="realKey" />
       </div>
-      <button v-if="fetchStatus == 'none'" type="button" class="btn btn-primary btn-lg mt-3" :disabled="!realKeyValid" @click="fetchRates()">Fetch Rates</button>
+      <button v-if="fetchStatus == 'none'" type="button" class="btn btn-primary btn-lg mt-3" :disabled="!realKeyValid" @click="fetchRates()">Fetch Shipping Rates</button>
       <button v-else-if="fetchStatus == 'fetching'" type="button" class="btn btn-secondary btn-lg mt-3" :disabled="true">Fetching...</button>
       <button v-else-if="fetchStatus == 'success'" type="button" class="btn btn-success btn-lg mt-3" :disabled="!realKeyValid" @click="fetchRates()">Success!</button>
       <button v-else-if="fetchStatus == 'fail'" type="button" class="btn btn-danger btn-lg mt-3" :disabled="!realKeyValid" @click="fetchRates()">Failed To Fetch</button>
+      <button v-if="importStatus == 'none'" type="button" class="btn btn-primary btn-lg mt-3" :disabled="!realKeyValid" @click="importProducts()">Import Products</button>
+      <button v-else-if="importStatus == 'importing'" type="button" class="btn btn-secondary btn-lg mt-3" :disabled="true">Importing...</button>
+      <button v-else-if="importStatus == 'success'" type="button" class="btn btn-success btn-lg mt-3" :disabled="!realKeyValid" @click="importProducts()">Success!</button>
+      <button v-else-if="importStatus == 'fail'" type="button" class="btn btn-danger btn-lg mt-3" :disabled="!realKeyValid" @click="importProducts()">Failed To Import</button>
     </div>
+    <hr />
   </div>
 </template>
 
@@ -41,7 +45,8 @@ export default {
     origin: location.origin,
     key: $store.state.key,
     realKey: '',
-    fetchStatus: 'none'
+    fetchStatus: 'none',
+    importStatus: 'none'
   }),
   computed: {
     realKeyValid() {
@@ -58,7 +63,7 @@ export default {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            key: this.realKey
+            realKey: this.realKey
           })
         });
         let json = await result.json();
@@ -73,6 +78,35 @@ export default {
         setTimeout(() => {
           this.fetchStatus = 'none';
         }, 1500);
+      }
+    },
+    async importProducts() {
+      if (confirm(`This will delete all data for key "${this.$store.state.key}" and replace them with your live products. Are you sure you want to do this?`)) {
+        try {
+          this.importStatus = 'importing';
+          let result = await fetch(`/admin/importproducts`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              realKey: this.realKey,
+              key: this.$store.state.key
+            })
+          });
+          let json = await result.json();
+          if (json.success) {
+            this.importStatus = 'success';
+          } else {
+            this.importStatus = 'fail';
+          }
+        } catch {
+          this.importStatus = 'fail';
+        } finally {
+          setTimeout(() => {
+            this.importStatus = 'none';
+          }, 1500);
+        }
       }
     }
   }

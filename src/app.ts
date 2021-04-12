@@ -15,11 +15,20 @@ admin.get('/country-shipping', (_req, res) => {
   res.json(dship.countryShipping());
 });
 admin.post('/getshiprate', async (req, res) => {
-  let key = req.body.key as string;
-  if (key) {
-    res.json({ success: await dship.fetchRealShipRates(key) });
+  let realKey = req.body.realKey as string;
+  if (realKey) {
+    res.json({ success: await dship.fetchRealShipRates(realKey) });
   } else {
     res.status(400).json({ error: 'Missing key' });
+  }
+});
+admin.post('/importproducts', async (req, res) => {
+  let realKey = req.body.realKey as string;
+  let key = req.body.key as string;
+  if (realKey && key) {
+    res.json({ success: await dship.importProducts(realKey, key) });
+  } else {
+    res.status(400).json({ error: 'Missing keys' });
   }
 });
 admin.use('/:api/*', (req, res, next) => {
