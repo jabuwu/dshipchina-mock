@@ -262,7 +262,7 @@ export default {
             }
           }
           query += `&country_code=${countryCodes[this.shipping.address.country]}`;
-          let data = await fetch(`/api4/getship2.php?key=abc&${query}`);
+          let data = await fetch(`/api4/getship2.php?key=abc${query}`);
           let ship = (await data.json()).ship;
           this.shipping.rates = {};
           for (let entry of ship) {

@@ -405,17 +405,20 @@ export function fakeShipRates() {
   return results;
 }
 let shipRatesCache: ShipRate[];
+export function setShipRatesCache(cache: ShipRate[]) {
+  shipRatesCache = cache;
+  for (let i = 0; i < shipRatesCache.length; ++i) {
+    shipRatesCache[i] = _.mapValues(shipRatesCache[i], (o, k) => k == 'note' ? o : Number(o)) as any;
+  }
+}
 export function shipRates(): ShipRate[] {
   if (shipRatesCache) {
     return shipRatesCache;
   }
   if (realShipRates instanceof Error) {
-    shipRatesCache = fakeShipRates();
+    setShipRatesCache(fakeShipRates());
   } else {
-    shipRatesCache = JSON.parse(realShipRates.toString());
-  }
-  for (let i = 0; i < shipRatesCache.length; ++i) {
-    shipRatesCache[i] = _.mapValues(shipRatesCache[i], (o, k) => k == 'note' ? o : Number(o)) as any;
+    setShipRatesCache(JSON.parse(realShipRates.toString()));
   }
   return shipRatesCache;
 }
@@ -430,7 +433,7 @@ export async function fetchRealShipRates(realApiKey: string): Promise<boolean> {
     if (typeof data === 'object') {
       if (typeof data.status != 'number' || data.status == 200) {
         await fs.writeJson('./getshiprate.json', data, { spaces: 2 });
-        shipRatesCache = data;
+        setShipRatesCache(data);
         return true;
       }
     }
